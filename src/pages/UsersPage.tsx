@@ -3,6 +3,11 @@ import {
   Button,
   Container,
   Typography,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { User } from "../types/user.types";
@@ -13,6 +18,10 @@ import UserForm from "../components/users/UserForm";
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const loadUsers = async () => {
     const data = await getUsers();
@@ -23,27 +32,68 @@ export default function UsersPage() {
     loadUsers();
   }, []);
 
+  const handleCreate = () => {
+    setEditingUser(null);
+    setOpen(true);
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setEditingUser(null);
+  };
+
   return (
     <Container maxWidth="lg">
-      <Typography variant="h4" mb={3}>
-        Gestión de Usuarios
-      </Typography>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+        flexWrap="wrap"
+        gap={2}
+      >
+        <Typography variant="h4">
+          Gestión de Usuarios
+        </Typography>
+
+        <Button variant="contained" onClick={handleCreate}>
+          Crear usuario
+        </Button>
+      </Box>
 
       <UsersTable
         users={users}
-        onEdit={setEditingUser}
+        onEdit={handleEdit}
         onReload={loadUsers}
       />
 
-      <Box mt={4}>
-        <UserForm
-          user={editingUser}
-          onFinish={() => {
-            setEditingUser(null);
-            loadUsers();
-          }}
-        />
-      </Box>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullScreen={fullScreen}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingUser ? "Editar usuario" : "Crear usuario"}
+        </DialogTitle>
+
+        <DialogContent>
+          <UserForm
+            user={editingUser}
+            onFinish={() => {
+              handleClose();
+              loadUsers();
+            }}
+            onCancel={handleClose}
+          />
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 }
