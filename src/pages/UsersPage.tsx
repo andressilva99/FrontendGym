@@ -48,30 +48,115 @@ export default function UsersPage() {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#f0f2f5",
+        pt: 8, // baja el contenido un toque (espacio arriba)
+        pb: 8,
+        px: 2,
+        position: "relative",
+      }}
+    >
+      {/* LOGO ARRIBA IZQUIERDA */}
       <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-        flexWrap="wrap"
-        gap={2}
+        sx={{
+          position: "absolute",
+          top: 15,
+          left: 24,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          zIndex: 10,
+        }}
       >
-        <Typography variant="h4">
-          Gestión de Usuarios
+        <img
+          src="/logo.png"
+          alt="Logo Gym"
+          style={{ height: 70, width: "auto", display: "block" }}
+        />
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 800,
+            mt: -1,
+            fontSize: "8px",
+            color: "#1877f2",
+            letterSpacing: 0.2,
+          }}
+        >
+          Oxigeno Espacio Deportivo
         </Typography>
-
-        <Button variant="contained" onClick={handleCreate}>
-          Crear usuario
-        </Button>
       </Box>
 
-      <UsersTable
-        users={users}
-        onEdit={handleEdit}
-        onReload={loadUsers}
-      />
+      {/* CONTENEDOR CENTRAL */}
+      <Container maxWidth={false} sx={{ maxWidth: "2000px !important" }}>
+        <Box
+          sx={{
+            backgroundColor: "#fff",
+            borderRadius: 3,
+            boxShadow: "0 6px 24px rgba(0,0,0,0.10)",
+            overflow: "hidden",
+          }}
+        >
+          {/* HEADER DE LA CARD */}
+          <Box
+            sx={{
+              px: { xs: 2, sm: 3, md: 4 },
+              py: { xs: 2, sm: 2.5, md: 3 },
+              borderBottom: "1px solid #e5e7eb",
+              background:
+                "linear-gradient(180deg, rgba(24,119,242,0.10) 0%, rgba(255,255,255,1) 70%)",
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              flexWrap="wrap"
+              gap={2}
+            >
+              <Box>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 800, color: "#111827" }}
+                >
+                  Gestión de Usuarios
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#6b7280", mt: 0.5 }}
+                >
+                  Administrá usuarios, DNI y roles en un solo lugar.
+                </Typography>
+              </Box>
 
+              <Button
+                variant="contained"
+                onClick={handleCreate}
+                sx={{
+                  backgroundColor: "#1877f2",
+                  "&:hover": { backgroundColor: "#145ecf" },
+                  textTransform: "none",
+                  fontWeight: 700,
+                  borderRadius: 2,
+                  px: 2.5,
+                  py: 1.1,
+                }}
+              >
+                Crear usuario
+              </Button>
+            </Box>
+          </Box>
+
+          {/* TABLA */}
+          <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+            <UsersTable users={users} onEdit={handleEdit} onReload={loadUsers} />
+          </Box>
+        </Box>
+      </Container>
+
+      {/* MODAL CREAR/EDITAR */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -94,6 +179,6 @@ export default function UsersPage() {
           />
         </DialogContent>
       </Dialog>
-    </Container>
+    </Box>
   );
 }

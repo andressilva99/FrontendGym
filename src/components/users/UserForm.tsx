@@ -62,23 +62,22 @@ export default function UserForm({ user, onFinish, onCancel }: Props) {
 
   return (
     <Paper elevation={0}>
-      <Typography variant="h6" mb={2}>
-        {user ? "Editar usuario" : "Crear usuario"}
-      </Typography>
-
       <Box display="grid" gap={2}>
         <TextField
           label="Usuario"
-          value={form.username}
-          onChange={e => setForm({ ...form, username: e.target.value })}
+          name="username"
+          value={form.username || ""}
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
           fullWidth
+          margin="normal"
+          variant="outlined"
         />
 
         <TextField
           label="DNI"
           type="number"
           value={form.dni}
-          onChange={e => setForm({ ...form, dni: e.target.value })}
+          onChange={(e) => setForm({ ...form, dni: e.target.value })}
           fullWidth
         />
 
@@ -86,7 +85,7 @@ export default function UserForm({ user, onFinish, onCancel }: Props) {
           select
           label="Rol"
           value={form.role}
-          onChange={e => setForm({ ...form, role: e.target.value })}
+          onChange={(e) => setForm({ ...form, role: e.target.value })}
           fullWidth
         >
           <MenuItem value="ADMINISTRATIVO">Administrativo</MenuItem>
@@ -97,8 +96,10 @@ export default function UserForm({ user, onFinish, onCancel }: Props) {
           label="Password"
           type="password"
           value={form.password}
-          onChange={e => setForm({ ...form, password: e.target.value })}
-          helperText={user ? "Opcional (solo si desea cambiarla)" : "Obligatoria"}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          helperText={
+            user ? "Opcional (solo si desea cambiarla)" : "Obligatorio"
+          }
           fullWidth
         />
 
