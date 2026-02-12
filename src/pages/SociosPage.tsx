@@ -24,8 +24,8 @@ import type {
   SocioFormData,
 } from "../types/socio.types";
 
-import { SocioForm } from "../components/users/socio/SocioForm";
-import { SocioTable } from "../components/users/socio/SocioTable";
+import { SocioForm } from "../components/socio/SocioForm";
+import { SocioTable } from "../components/socio/SocioTable";
 
 export const SociosPage = () => {
   const [socios, setSocios] = useState<Socio[]>([]);
