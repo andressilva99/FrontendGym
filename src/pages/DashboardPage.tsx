@@ -1,8 +1,25 @@
-// src/pages/DashboardPage.tsx
 import React from "react";
-import { Container, Typography, Paper, Grid } from "@mui/material";
-import { People, AccountBalance, Payments, Folder, BarChart } from "@mui/icons-material";
+import {
+  Container,
+  Typography,
+  Paper,
+  Button,
+  Box,
+} from "@mui/material";
+import {
+  People,
+  AccountBalance,
+  Payments,
+  Folder,
+  BarChart,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import type { User } from "../types/user.types";
+
+interface Props {
+  user: User;
+  onLogout: () => void;
+}
 
 interface DashboardItem {
   title: string;
@@ -10,57 +27,104 @@ interface DashboardItem {
   path: string;
 }
 
-const items: DashboardItem[] = [
-  { title: "Usuarios", icon: <People fontSize="large" />, path: "/users" },
-  { title: "Socios", icon: <AccountBalance fontSize="large" />, path: "/socios" },
-  { title: "Cuotas", icon: <Folder fontSize="large" />, path: "/shares" },
-  { title: "Pagos", icon: <Payments fontSize="large" />, path: "/payments" },
-  { title: "Reportes", icon: <BarChart fontSize="large" />, path: "/reports" },
-];
-
-const DashboardPage: React.FC = () => {
+const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
   const navigate = useNavigate();
+
+  const allItems: DashboardItem[] = [
+    { title: "Usuarios", icon: <People fontSize="large" />, path: "/users" },
+    { title: "Socios", icon: <AccountBalance fontSize="large" />, path: "/socios" },
+    { title: "Cuotas", icon: <Folder fontSize="large" />, path: "/shares" },
+    { title: "Pagos", icon: <Payments fontSize="large" />, path: "/payments" },
+    { title: "Reportes", icon: <BarChart fontSize="large" />, path: "/reports" },
+  ];
+
+  const visibleItems =
+    user.role === "ADMINISTRATIVO"
+      ? allItems
+      : allItems.filter(
+          (item) =>
+            item.title === "Socios" ||
+            item.title === "Pagos"
+        );
 
   return (
     <Container maxWidth="lg" sx={{ mt: 5 }}>
-      <Typography variant="h4" mb={4}>
-        Panel de Inicio
-      </Typography>
+      
+      {/* Header con bienvenida */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={5}
+      >
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            Bienvenido, {user.username}
+          </Typography>
 
-      <Grid container spacing={4}>
-        {items.map((item) => (
-          <Grid
-            
-            key={item.title}
-            component="div" // ⚠️ evita el error de TypeScript
+          <Typography
+            variant="subtitle2"
+            sx={{
+              backgroundColor: "#f0f0f0",
+              display: "inline-block",
+              px: 2,
+              py: 0.5,
+              borderRadius: 2,
+              mt: 1,
+              fontWeight: 500,
+            }}
           >
-            <Paper
-              elevation={3}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                p: 3,
-                height: 140,
-                cursor: "pointer",
-                borderRadius: 3,
-                "&:hover": {
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                  transform: "translateY(-3px)",
-                  transition: "all 0.3s ease",
-                },
-              }}
-              onClick={() => navigate(item.path)}
-            >
-              {item.icon}
-              <Typography variant="subtitle1" mt={1} fontWeight={600}>
-                {item.title}
-              </Typography>
-            </Paper>
-          </Grid>
+            {user.role}
+          </Typography>
+        </Box>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={onLogout}
+        >
+          Cerrar sesión
+        </Button>
+      </Box>
+
+      {/* Contenedor flexible */}
+      <Box
+        display="flex"
+        flexWrap="wrap"
+        gap={3}
+      >
+        {visibleItems.map((item) => (
+          <Paper
+            key={item.title}
+            elevation={3}
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "48%",
+                md: "30%",
+              },
+              height: 140,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              borderRadius: 3,
+              transition: "all 0.3s ease",
+              "&:hover": {
+                boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+                transform: "translateY(-4px)",
+              },
+            }}
+            onClick={() => navigate(item.path)}
+          >
+            {item.icon}
+            <Typography mt={1} fontWeight={600}>
+              {item.title}
+            </Typography>
+          </Paper>
         ))}
-      </Grid>
+      </Box>
     </Container>
   );
 };
