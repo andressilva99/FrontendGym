@@ -4,5 +4,6 @@ export interface User {
   _id: string;
   username: string;
   dni: number;
-  role: Role;
+  role: Role; 
+  token: string;
 }

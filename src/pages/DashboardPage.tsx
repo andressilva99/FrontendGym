@@ -1,6 +1,11 @@
-// src/pages/DashboardPage.tsx
 import React from "react";
-import { Container, Typography, Paper, Grid, Box } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Paper,
+  Button,
+  Box,
+} from "@mui/material";
 import {
   People,
   AccountBalance,
@@ -9,6 +14,12 @@ import {
   BarChart,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import type { User } from "../types/user.types";
+
+interface Props {
+  user: User;
+  onLogout: () => void;
+}
 
 interface DashboardItem {
   title: string;
@@ -16,187 +27,105 @@ interface DashboardItem {
   path: string;
 }
 
-const items: DashboardItem[] = [
-  { title: "Usuarios", icon: <People fontSize="large" />, path: "/users" },
-  { title: "Socios", icon: <AccountBalance fontSize="large" />, path: "/socios" },
-  { title: "Cuotas", icon: <Folder fontSize="large" />, path: "/shares" },
-  { title: "Pagos", icon: <Payments fontSize="large" />, path: "/payments" },
-  { title: "Reportes", icon: <BarChart fontSize="large" />, path: "/reports" },
-];
-
-const DashboardPage: React.FC = () => {
+const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
   const navigate = useNavigate();
 
+  const allItems: DashboardItem[] = [
+    { title: "Usuarios", icon: <People fontSize="large" />, path: "/users" },
+    { title: "Socios", icon: <AccountBalance fontSize="large" />, path: "/socios" },
+    { title: "Cuotas", icon: <Folder fontSize="large" />, path: "/shares" },
+    { title: "Pagos", icon: <Payments fontSize="large" />, path: "/payments" },
+    { title: "Reportes", icon: <BarChart fontSize="large" />, path: "/reports" },
+  ];
+
+  const visibleItems =
+    user.role === "ADMINISTRATIVO"
+      ? allItems
+      : allItems.filter(
+          (item) =>
+            item.title === "Socios" ||
+            item.title === "Pagos"
+        );
+
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#f3f4f6",
-        py: { xs: 2, sm: 3 },
-      }}
-    >
-      <Container
-        maxWidth={false}
-        sx={{
-          maxWidth: 2000,
-          mx: "auto",
-          px: { xs: 2, sm: 3 },
-        }}
+    <Container maxWidth="lg" sx={{ mt: 5 }}>
+      
+      {/* Header con bienvenida */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={5}
       >
-        {/* Header: logo + texto (igual que UsersPage) */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.25,
-            mb: { xs: 2, sm: 3 },
-          }}
-        >
-          <Box
-            component="img"
-            src="/logo.png"
-            alt="Logo"
-            sx={{
-              width: { xs: 46, sm: 56 },
-              height: { xs: 46, sm: 56 },
-              borderRadius: "50%",
-              objectFit: "cover",
-              bgcolor: "#fff",
-              border: "1px solid rgba(2, 62, 138, .12)",
-              boxShadow: "0 10px 22px rgba(2, 62, 138, .10)",
-            }}
-          />
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            Bienvenido, {user.username}
+          </Typography>
 
           <Typography
+            variant="subtitle2"
             sx={{
-              fontWeight: 800,
-              color: "#0b3b8c",
-              fontSize: { xs: 12.5, sm: 14.5 },
-              lineHeight: 1.1,
+              backgroundColor: "#f0f0f0",
+              display: "inline-block",
+              px: 2,
+              py: 0.5,
+              borderRadius: 2,
+              mt: 1,
+              fontWeight: 500,
             }}
           >
-            Oxígeno Espacio Deportivo
+            {user.role}
           </Typography>
         </Box>
 
-        {/* Card principal (mismo ancho general) */}
-        <Paper
-          elevation={0}
-          sx={{
-            width: "100%",
-            borderRadius: 2,
-            border: "1px solid #e5e7eb",
-            bgcolor: "#fff",
-            overflow: "hidden",
-            boxShadow: "0 16px 30px rgba(15, 23, 42, .08)",
-          }}
+        <Button
+          variant="contained"
+          color="error"
+          onClick={onLogout}
         >
-          {/* Título */}
-          <Box
+          Cerrar sesión
+        </Button>
+      </Box>
+
+      {/* Contenedor flexible */}
+      <Box
+        display="flex"
+        flexWrap="wrap"
+        gap={3}
+      >
+        {visibleItems.map((item) => (
+          <Paper
+            key={item.title}
+            elevation={3}
             sx={{
-              px: { xs: 2, sm: 3 },
-              py: { xs: 2, sm: 2.5 },
-              borderBottom: "1px solid #eef2f7",
-              background:
-                "linear-gradient(180deg, rgba(173,232,244,.40) 0%, rgba(255,255,255,1) 70%)",
+              width: {
+                xs: "100%",
+                sm: "48%",
+                md: "30%",
+              },
+              height: 140,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              borderRadius: 3,
+              transition: "all 0.3s ease",
+              "&:hover": {
+                boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+                transform: "translateY(-4px)",
+              },
             }}
+            onClick={() => navigate(item.path)}
           >
-            <Typography
-              sx={{
-                fontWeight: 900,
-                fontSize: { xs: 22, sm: 28 },
-                color: "#111827",
-              }}
-            >
-              Panel de inicio
+            {item.icon}
+            <Typography mt={1} fontWeight={600}>
+              {item.title}
             </Typography>
-
-            <Typography
-              sx={{
-                mt: 0.5,
-                color: "#6b7280",
-                fontSize: { xs: 13, sm: 14 },
-              }}
-            >
-              Elegí una sección para continuar.
-            </Typography>
-          </Box>
-
-          {/* Botones */}
-          <Box sx={{ p: { xs: 2, sm: 3 } }}>
-            <Grid
-              container
-              spacing={{ xs: 2, sm: 2.5 }}
-              justifyContent="center"
-            >
-              {items.map((item) => (
-                <Grid
-                  key={item.title}
-                  item
-                  xs={12}
-                  sm={6}
-                  md={4}
-                  lg={2.4 as any} // 5 items "parejos" en pantallas grandes
-                  component="div"
-                  sx={{ display: "flex" }}
-                >
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      width: "100%",
-                      minHeight: { xs: 140, sm: 165 }, // un poquito más grande
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 1,
-                      p: 2.5,
-                      cursor: "pointer",
-                      borderRadius: 3,
-                      border: "1px solid rgba(2, 62, 138, .22)", // contorno azul
-                      boxShadow: "0 10px 22px rgba(2, 62, 138, .10)", // sombreado fino
-                      transition:
-                        "transform .15s ease, box-shadow .15s ease, border-color .15s ease",
-                      "&:hover": {
-                        transform: "translateY(-3px)",
-                        borderColor: "rgba(2, 62, 138, .35)",
-                        boxShadow: "0 16px 30px rgba(2, 62, 138, .14)",
-                      },
-                    }}
-                    onClick={() => navigate(item.path)} // NO tocamos rutas
-                  >
-                    <Box
-                      sx={{
-                        width: 58,
-                        height: 58,
-                        borderRadius: 2,
-                        display: "grid",
-                        placeItems: "center",
-                        bgcolor: "rgba(0, 119, 182, .10)",
-                        color: "#023e8a",
-                      }}
-                    >
-                      {item.icon}
-                    </Box>
-
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        mt: 0.5,
-                        fontWeight: 800,
-                        color: "#111827",
-                      }}
-                    >
-                      {item.title}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Paper>
-      </Container>
-    </Box>
+          </Paper>
+        ))}
+      </Box>
+    </Container>
   );
 };
 
