@@ -22,7 +22,7 @@ import type {
   Share,
   Socio,
 } from "../types/payment.types";
-import { PaymentGenerateForm } from "../components/payment/paymentGenerateForm";
+import { PaymentGenerateForm } from "../components/payment/PaymentGenerateForm";
 import { PaymentTable } from "../components/payment/PaymentTable";
 
 export const PaymentsPage = () => {
