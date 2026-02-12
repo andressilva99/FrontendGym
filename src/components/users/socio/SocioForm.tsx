@@ -19,7 +19,6 @@ interface Props {
 export const SocioForm = ({
   formData,
   trainers,
-  editing,
   onChange,
 }: Props) => {
   return (
