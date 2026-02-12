@@ -8,6 +8,7 @@ import {
   DialogTitle,
   useMediaQuery,
   useTheme,
+  Stack,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { User } from "../types/user.types";
@@ -51,81 +52,111 @@ export default function UsersPage() {
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: "#f0f2f5",
-        pt: 8, // baja el contenido un toque (espacio arriba)
-        pb: 8,
-        px: 2,
-        position: "relative",
+        bgcolor: "#f5f7fb",
+        px: { xs: 1.5, sm: 3, md: 4 },
+        py: { xs: 2, sm: 3 },
       }}
     >
-      {/* LOGO ARRIBA IZQUIERDA */}
+      {/* ===== HEADER (logo + texto) ===== */}
       <Box
         sx={{
-          position: "absolute",
-          top: 15,
-          left: 24,
+          width: "100%",
           display: "flex",
           alignItems: "center",
-          gap: 1,
-          zIndex: 10,
+          gap: { xs: 1, sm: 1.5 },
+          mb: { xs: 2, sm: 3 },
         }}
       >
-        <img
-          src="/logo.png"
-          alt="Logo Gym"
-          style={{ height: 70, width: "auto", display: "block" }}
-        />
-        <Typography
-          variant="h6"
+        {/* Logo */}
+        <Box
+          component="img"
+          src="/logo.png" 
+          alt="Logo"
           sx={{
-            fontWeight: 800,
-            mt: -1,
-            fontSize: "8px",
-            color: "#1877f2",
-            letterSpacing: 0.2,
+            width: { xs: 44, sm: 56, md: 64 },
+            height: { xs: 44, sm: 56, md: 64 },
+            borderRadius: "50%",
+            objectFit: "cover",
           }}
-        >
-          Oxigeno Espacio Deportivo
-        </Typography>
+        />
+
+        {/* Texto */}
+        <Box sx={{ lineHeight: 1 }}>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              color: "#1877F2",
+              fontSize: { xs: 12, sm: 14, md: 16 },
+              letterSpacing: 0.2,
+            }}
+          >
+            Oxígeno Espacio Deportivo
+          </Typography>
+          <Typography
+            sx={{
+              color: "#6b7280",
+              fontSize: { xs: 11, sm: 12 },
+              mt: 0.2,
+            }}
+          >
+            
+          </Typography>
+        </Box>
       </Box>
 
-      {/* CONTENEDOR CENTRAL */}
-      <Container maxWidth={false} sx={{ maxWidth: "2000px !important" }}>
+      {/* ===== CONTENIDO CENTRADO ===== */}
+      <Container
+        maxWidth={false}
+        sx={{
+          maxWidth: 2000,
+          mx: "auto",
+          mt: { xs: 1, sm: 1.5, md: 2 }, // ✅ baja un poco todo
+        }}
+      >
+        {/* Card / Encabezado de la sección */}
         <Box
           sx={{
-            backgroundColor: "#fff",
+            bgcolor: "white",
             borderRadius: 3,
-            boxShadow: "0 6px 24px rgba(0,0,0,0.10)",
+            boxShadow: "0 10px 30px rgba(17,24,39,0.08)",
+            border: "1px solid rgba(0,0,0,0.06)",
             overflow: "hidden",
           }}
         >
-          {/* HEADER DE LA CARD */}
+          {/* Header de la card */}
           <Box
             sx={{
-              px: { xs: 2, sm: 3, md: 4 },
-              py: { xs: 2, sm: 2.5, md: 3 },
-              borderBottom: "1px solid #e5e7eb",
+              px: { xs: 2, sm: 3 },
+              py: { xs: 2, sm: 2.5 },
+              borderBottom: "1px solid rgba(0,0,0,0.06)",
               background:
-                "linear-gradient(180deg, rgba(24,119,242,0.10) 0%, rgba(255,255,255,1) 70%)",
+                "linear-gradient(180deg, rgba(24,119,242,0.08), rgba(255,255,255,0))",
             }}
           >
-            <Box
-              display="flex"
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              alignItems={{ xs: "stretch", sm: "center" }}
               justifyContent="space-between"
-              alignItems="center"
-              flexWrap="wrap"
-              gap={2}
             >
               <Box>
                 <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 800, color: "#111827" }}
+                  sx={{
+                    fontWeight: 900,
+                    color: "#111827",
+                    fontSize: { xs: 26, sm: 32, md: 36 },
+                    lineHeight: 1.05,
+                  }}
                 >
                   Gestión de Usuarios
                 </Typography>
+
                 <Typography
-                  variant="body2"
-                  sx={{ color: "#6b7280", mt: 0.5 }}
+                  sx={{
+                    mt: 0.8,
+                    color: "#6b7280",
+                    fontSize: { xs: 13, sm: 14 },
+                  }}
                 >
                   Administrá usuarios, DNI y roles en un solo lugar.
                 </Typography>
@@ -135,50 +166,48 @@ export default function UsersPage() {
                 variant="contained"
                 onClick={handleCreate}
                 sx={{
-                  backgroundColor: "#1877f2",
-                  "&:hover": { backgroundColor: "#145ecf" },
+                  bgcolor: "#1877F2",
                   textTransform: "none",
-                  fontWeight: 700,
                   borderRadius: 2,
                   px: 2.5,
-                  py: 1.1,
+                  width: { xs: "100%", sm: "auto" },
+                  boxShadow: "0 8px 18px rgba(24,119,242,0.25)",
+                  "&:hover": { bgcolor: "#166fe5" },
                 }}
               >
                 Crear usuario
               </Button>
-            </Box>
+            </Stack>
           </Box>
 
-          {/* TABLA */}
-          <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+          {/* Tabla (scroll horizontal en móvil) */}
+          <Box sx={{ overflowX: "auto" }}>
             <UsersTable users={users} onEdit={handleEdit} onReload={loadUsers} />
           </Box>
         </Box>
+
+        {/* Modal */}
+        <Dialog
+          open={open}
+          onClose={handleClose}
+          fullScreen={fullScreen}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>{editingUser ? "Editar usuario" : "Crear usuario"}</DialogTitle>
+
+          <DialogContent>
+            <UserForm
+              user={editingUser}
+              onFinish={() => {
+                handleClose();
+                loadUsers();
+              }}
+              onCancel={handleClose}
+            />
+          </DialogContent>
+        </Dialog>
       </Container>
-
-      {/* MODAL CREAR/EDITAR */}
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        fullScreen={fullScreen}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          {editingUser ? "Editar usuario" : "Crear usuario"}
-        </DialogTitle>
-
-        <DialogContent>
-          <UserForm
-            user={editingUser}
-            onFinish={() => {
-              handleClose();
-              loadUsers();
-            }}
-            onCancel={handleClose}
-          />
-        </DialogContent>
-      </Dialog>
     </Box>
   );
 }
