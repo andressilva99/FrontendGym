@@ -62,10 +62,6 @@ export default function UserForm({ user, onFinish, onCancel }: Props) {
 
   return (
     <Paper elevation={0}>
-      <Typography variant="h6" mb={2}>
-        {user ? "Editar usuario" : "Crear usuario"}
-      </Typography>
-
       <Box display="grid" gap={2}>
         <TextField
           label="Usuario"
@@ -98,7 +94,7 @@ export default function UserForm({ user, onFinish, onCancel }: Props) {
           type="password"
           value={form.password}
           onChange={e => setForm({ ...form, password: e.target.value })}
-          helperText={user ? "Opcional (solo si desea cambiarla)" : "Obligatoria"}
+          helperText={user ? "Opcional (solo si desea cambiarla)" : "Obligatorio"}
           fullWidth
         />
 

@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  Paper,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -48,30 +49,81 @@ export default function UsersPage() {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-        flexWrap="wrap"
-        gap={2}
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#f0f2f5",
+        pt: { xs: 6, md: 9 }, 
+        pb: 6,
+      }}
+    >
+      <Container
+        maxWidth={false}
+        sx={{
+          width: "100%",
+          maxWidth: { xs: "100%", md: "1400px", lg: "2000px" }, // más ancho en desktop
+          px: { xs: 2, md: 4, lg: 6 }, // padding lateral responsive
+        }}
       >
-        <Typography variant="h4">
-          Gestión de Usuarios
-        </Typography>
+        <Paper
+          elevation={3}
+          sx={{
+            borderRadius: 3,
+            overflow: "hidden",
+          }}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              px: { xs: 3, md: 5 },
+              py: { xs: 3, md: 4 },
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: "#1c1e21",
+                }}
+              >
+                Gestión de Usuarios
+              </Typography>
 
-        <Button variant="contained" onClick={handleCreate}>
-          Crear usuario
-        </Button>
-      </Box>
+              <Typography variant="body2" sx={{ color: "#65676b", mt: 1 }}>
+                Administrá usuarios, DNI y roles en un solo lugar.
+              </Typography>
+            </Box>
 
-      <UsersTable
-        users={users}
-        onEdit={handleEdit}
-        onReload={loadUsers}
-      />
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              sx={{
+                backgroundColor: "#1877f2",
+                textTransform: "none",
+                fontWeight: 600,
+                px: 3,
+                "&:hover": { backgroundColor: "#166fe5" },
+              }}
+            >
+              Crear usuario
+            </Button>
+          </Box>
 
+          {/* Tabla */}
+          <Box sx={{ px: { xs: 2, md: 4 }, py: 3 }}>
+            <UsersTable users={users} onEdit={handleEdit} onReload={loadUsers} />
+          </Box>
+        </Paper>
+      </Container>
+
+      {/* Dialog */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -94,6 +146,6 @@ export default function UsersPage() {
           />
         </DialogContent>
       </Dialog>
-    </Container>
+    </Box>
   );
 }
