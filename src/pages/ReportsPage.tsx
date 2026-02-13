@@ -4,8 +4,12 @@ import {
   Container,
   Typography,
   Stack,
-  Divider
+  Divider,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import HomeIcon from '@mui/icons-material/Home';
 import ReportFilters from "../components/reports/ReportFilters";
 import GeneralSummaryTable from "../components/reports/ReportsGeneralSummary";
 import TrainerSummaryTable from "../components/reports/ReportTrainerSummary";
@@ -15,6 +19,8 @@ import { api } from "../api/axios";
 const ReportsPage: React.FC = () => {
   const [general, setGeneral] = useState<GeneralSummary | null>(null);
   const [byTrainer, setByTrainer] = useState<TrainerSummary[]>([]);
+  
+  const navigate = useNavigate();
 
   const loadReport = async (year: number, month: number) => {
     try {
@@ -30,7 +36,6 @@ const ReportsPage: React.FC = () => {
     }
   };
 
-  // Carga inicial opcional (puedes pasar el mes/año actual si lo deseas)
   useEffect(() => {
     const now = new Date();
     loadReport(now.getFullYear(), now.getMonth() + 1);
@@ -45,39 +50,61 @@ const ReportsPage: React.FC = () => {
         py: { xs: 2, sm: 3 },
       }}
     >
-      {/* ===== HEADER (Logo + Título de la App) ===== */}
+      {/* ===== HEADER (Logo + Marca + Botón Home) ===== */}
       <Box
         sx={{
           width: "100%",
           display: "flex",
           alignItems: "center",
-          gap: { xs: 1, sm: 1.5 },
+          justifyContent: "space-between", // Empuja el Home a la derecha
           mb: { xs: 2, sm: 3 },
         }}
       >
-        <Box
-          component="img"
-          src="/logo.png"
-          alt="Logo"
-          sx={{
-            width: { xs: 44, sm: 56, md: 64 },
-            height: { xs: 44, sm: 56, md: 64 },
-            borderRadius: "50%",
-            objectFit: "cover",
-          }}
-        />
-        <Box sx={{ lineHeight: 1 }}>
-          <Typography
+        <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 1.5 } }}>
+          <Box
+            component="img"
+            src="/logo.png"
+            alt="Logo"
             sx={{
-              fontWeight: 800,
-              color: "#1877F2",
-              fontSize: { xs: 12, sm: 14, md: 16 },
-              letterSpacing: 0.2,
+              width: { xs: 44, sm: 56, md: 64 },
+              height: { xs: 44, sm: 56, md: 64 },
+              borderRadius: "50%",
+              objectFit: "cover",
+              boxShadow: "0 4px 12px rgba(24,119,242,0.15)",
+            }}
+          />
+          <Box sx={{ lineHeight: 1 }}>
+            <Typography
+              sx={{
+                fontWeight: 800,
+                color: "#1877F2",
+                fontSize: { xs: 12, sm: 14, md: 16 },
+                letterSpacing: 0.2,
+              }}
+            >
+              Oxígeno Espacio Deportivo
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Botón Home alineado a la derecha */}
+        <Tooltip title="Ir al Dashboard">
+          <IconButton 
+            onClick={() => navigate("/")}
+            sx={{ 
+              color: "#1877F2", 
+              bgcolor: "rgba(24, 119, 242, 0.05)",
+              border: "1px solid rgba(24, 119, 242, 0.1)",
+              "&:hover": { 
+                bgcolor: "rgba(24, 119, 242, 0.12)",
+                transform: "scale(1.05)"
+              },
+              transition: "all 0.2s"
             }}
           >
-            Oxígeno Espacio Deportivo
-          </Typography>
-        </Box>
+            <HomeIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 } }} />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       {/* ===== CONTENIDO PRINCIPAL ===== */}
@@ -98,7 +125,7 @@ const ReportsPage: React.FC = () => {
             overflow: "hidden",
           }}
         >
-          {/* Header de la Card */}
+          {/* Header de la Card con Gradiente */}
           <Box
             sx={{
               px: { xs: 2, sm: 3 },
@@ -136,7 +163,7 @@ const ReportsPage: React.FC = () => {
                 </Typography>
               </Box>
 
-              {/* Los filtros ahora se integran aquí como una acción de la cabecera */}
+              {/* Los filtros integrados en la cabecera */}
               <Box>
                 <ReportFilters onLoad={loadReport} />
               </Box>

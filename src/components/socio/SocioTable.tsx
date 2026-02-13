@@ -6,9 +6,12 @@ import {
   TableBody,
   Paper,
   IconButton,
+  TableContainer,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
-import type { Socio } from "../../../types/socio.types";
+
+// RUTA CORREGIDA: Según tus capturas, este es el nivel correcto
+import type { Socio } from "../../types/socio.types";
 
 interface Props {
   socios: Socio[];
@@ -16,52 +19,48 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
-const formatDate = (date: string) => {
-  const [year, month, day] = date.substring(0, 10).split("-");
-  return `${day}/${month}/${year}`;
-};
-
 export const SocioTable = ({ socios, onEdit, onDelete }: Props) => {
   return (
-    <Paper elevation={3}>
+    <TableContainer component={Paper} sx={{ boxShadow: "none" }}>
       <Table>
-        <TableHead>
+        <TableHead sx={{ bgcolor: "#f5f5f5" }}>
           <TableRow>
-            <TableCell>Apellido</TableCell>
-            <TableCell>Nombre</TableCell>
-            <TableCell>Fecha Nac.</TableCell>
-            <TableCell>Entrenador</TableCell>
-            <TableCell align="right">Acciones</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Apellido</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Fecha Nac.</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Entrenador</TableCell>
+            <TableCell align="right" sx={{ fontWeight: "bold" }}>
+              Acciones
+            </TableCell>
           </TableRow>
         </TableHead>
-
         <TableBody>
           {socios.map((s) => (
-            <TableRow key={s._id}>
+            <TableRow key={s._id} hover>
               <TableCell>{s.apellido}</TableCell>
               <TableCell>{s.nombre}</TableCell>
-              <TableCell>{formatDate(s.fechaNacimiento)}</TableCell>
               <TableCell>
-                {typeof s.trainerId === "object"
-                  ? s.trainerId.username
-                  : s.trainerId}
+                {s.fechaNacimiento
+                  ? new Date(s.fechaNacimiento).toLocaleDateString()
+                  : "N/A"}
+              </TableCell>
+              <TableCell>
+                {typeof s.trainerId === "object" && s.trainerId !== null
+                  ? (s.trainerId as any).username
+                  : "Sin asignar"}
               </TableCell>
               <TableCell align="right">
                 <IconButton onClick={() => onEdit(s)} color="primary">
-                  <Edit />
+                  <Edit fontSize="small" />
                 </IconButton>
-
-                <IconButton
-                  onClick={() => onDelete(s._id)}
-                  color="error"
-                >
-                  <Delete />
+                <IconButton onClick={() => onDelete(s._id)} color="error">
+                  <Delete fontSize="small" />
                 </IconButton>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-    </Paper>
+    </TableContainer>
   );
 };
