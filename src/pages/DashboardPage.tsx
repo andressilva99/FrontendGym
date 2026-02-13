@@ -3,8 +3,8 @@ import {
   Container,
   Typography,
   Paper,
-  Button,
   Box,
+  Button,
 } from "@mui/material";
 import {
   People,
@@ -48,84 +48,200 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
         );
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 5 }}>
-      
-      {/* Header con bienvenida */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={5}
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#f3f4f6",
+        py: { xs: 2, sm: 3 },
+      }}
+    >
+      <Container
+        maxWidth={false}
+        sx={{
+          maxWidth: 2000,
+          mx: "auto",
+          px: { xs: 2, sm: 3 },
+        }}
       >
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            Bienvenido, {user.username}
-          </Typography>
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: { xs: 2, sm: 3 },
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <Box
+              component="img"
+              src="/logo.png"
+              alt="Logo"
+              sx={{
+                width: { xs: 46, sm: 56 },
+                height: { xs: 46, sm: 56 },
+                borderRadius: "50%",
+                objectFit: "cover",
+                bgcolor: "#fff",
+                border: "1px solid rgba(2, 62, 138, .12)",
+                boxShadow: "0 10px 22px rgba(2, 62, 138, .10)",
+              }}
+            />
 
-          <Typography
-            variant="subtitle2"
-            sx={{
-              backgroundColor: "#f0f0f0",
-              display: "inline-block",
-              px: 2,
-              py: 0.5,
-              borderRadius: 2,
-              mt: 1,
-              fontWeight: 500,
-            }}
+            <Box>
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  color: "#0b3b8c",
+                  fontSize: { xs: 13, sm: 15 },
+                  lineHeight: 1.1,
+                }}
+              >
+                Oxígeno Espacio Deportivo
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: "#6b7280",
+                }}
+              >
+                Bienvenido, {user.username} — {user.role}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={onLogout}
           >
-            {user.role}
-          </Typography>
+            Cerrar sesión
+          </Button>
         </Box>
 
-        <Button
-          variant="contained"
-          color="error"
-          onClick={onLogout}
+        {/* Card principal */}
+        <Paper
+          elevation={0}
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            border: "1px solid #e5e7eb",
+            bgcolor: "#fff",
+            overflow: "hidden",
+            boxShadow: "0 16px 30px rgba(15, 23, 42, .08)",
+          }}
         >
-          Cerrar sesión
-        </Button>
-      </Box>
-
-      {/* Contenedor flexible */}
-      <Box
-        display="flex"
-        flexWrap="wrap"
-        gap={3}
-      >
-        {visibleItems.map((item) => (
-          <Paper
-            key={item.title}
-            elevation={3}
+          {/* Título */}
+          <Box
             sx={{
-              width: {
-                xs: "100%",
-                sm: "48%",
-                md: "30%",
-              },
-              height: 140,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              borderRadius: 3,
-              transition: "all 0.3s ease",
-              "&:hover": {
-                boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                transform: "translateY(-4px)",
-              },
+              px: { xs: 2, sm: 3 },
+              py: { xs: 2, sm: 2.5 },
+              borderBottom: "1px solid #eef2f7",
+              background:
+                "linear-gradient(180deg, rgba(173,232,244,.40) 0%, rgba(255,255,255,1) 70%)",
             }}
-            onClick={() => navigate(item.path)}
           >
-            {item.icon}
-            <Typography mt={1} fontWeight={600}>
-              {item.title}
+            <Typography
+              sx={{
+                fontWeight: 900,
+                fontSize: { xs: 22, sm: 28 },
+                color: "#111827",
+              }}
+            >
+              Panel de inicio
             </Typography>
-          </Paper>
-        ))}
-      </Box>
-    </Container>
+
+            <Typography
+              sx={{
+                mt: 0.5,
+                color: "#6b7280",
+                fontSize: { xs: 13, sm: 14 },
+              }}
+            >
+              Elegí una sección para continuar.
+            </Typography>
+          </Box>
+
+          {/* Botones sin Grid */}
+          <Box
+            sx={{
+              p: { xs: 2, sm: 3 },
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: { xs: 2, sm: 2.5 },
+            }}
+          >
+            {visibleItems.map((item) => (
+              <Box
+                key={item.title}
+                sx={{
+                  width: {
+                    xs: "100%",
+                    sm: "48%",
+                    md: "31%",
+                    lg: "18%",
+                  },
+                  display: "flex",
+                }}
+              >
+                <Paper
+                  elevation={0}
+                  sx={{
+                    width: "100%",
+                    minHeight: { xs: 140, sm: 165 },
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                    p: 2.5,
+                    cursor: "pointer",
+                    borderRadius: 3,
+                    border: "1px solid rgba(2, 62, 138, .22)",
+                    boxShadow: "0 10px 22px rgba(2, 62, 138, .10)",
+                    transition:
+                      "transform .15s ease, box-shadow .15s ease, border-color .15s ease",
+                    "&:hover": {
+                      transform: "translateY(-3px)",
+                      borderColor: "rgba(2, 62, 138, .35)",
+                      boxShadow: "0 16px 30px rgba(2, 62, 138, .14)",
+                    },
+                  }}
+                  onClick={() => navigate(item.path)}
+                >
+                  <Box
+                    sx={{
+                      width: 58,
+                      height: 58,
+                      borderRadius: 2,
+                      display: "grid",
+                      placeItems: "center",
+                      bgcolor: "rgba(0, 119, 182, .10)",
+                      color: "#023e8a",
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
+
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: 800,
+                      color: "#111827",
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+                </Paper>
+              </Box>
+            ))}
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 
