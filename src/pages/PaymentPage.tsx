@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
+
 import {
   getPayments,
   generatePayments,
@@ -26,20 +27,22 @@ import {
   updatePaymentShare,
 } from "../api/payment.api";
 import { api } from "../api/axios";
-import type {
-  Payment,
-  Share,
-  Socio,
-} from "../types/payment.types";
+import type { Payment, Share, Socio } from "../types/payment.types";
 import { PaymentGenerateForm } from "../components/payment/PaymentGenerateForm";
 import { PaymentTable } from "../components/payment/PaymentTable";
+
+// Mapeo para cuando el mes viene como texto en la tabla
+const mesesValores: { [key: string]: number } = {
+  "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
+  "julio": 7, "agosto": 8, "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12
+};
 
 export const PaymentsPage = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [shares, setShares] = useState<Share[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortAsc, setSortAsc] = useState(false); // Estado para el orden de fecha
+  const [sortAsc, setSortAsc] = useState(false); 
   const [open, setOpen] = useState(false);
 
   const navigate = useNavigate();
@@ -61,28 +64,28 @@ export const PaymentsPage = () => {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  // LÓGICA DE FILTRADO Y ORDENAMIENTO
   const processedPayments = useMemo(() => {
-    // 1. Filtrar
     const filtered = payments.filter((p: any) => {
       const search = searchTerm.toLowerCase();
-      
-      // Acceso a datos anidados (Socio y Entrenador)
       const socioNombre = `${p.socioId?.nombre || ''} ${p.socioId?.apellido || ''}`.toLowerCase();
       const trainerNombre = (p.socioId?.trainerId?.nombre || '').toLowerCase();
-      
       return socioNombre.includes(search) || trainerNombre.includes(search);
     });
 
-    // 2. Ordenar por fecha (createdAt o fecha de pago)
     return [...filtered].sort((a: any, b: any) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return sortAsc ? dateA - dateB : dateB - dateA;
+      // Priorizamos los campos numéricos year/month si existen, sino usamos año/mes string
+      const anioA = parseInt(a.year || a.año || 0);
+      const anioB = parseInt(b.year || b.año || 0);
+      
+      const mesA = typeof a.month === 'number' ? a.month : (mesesValores[a.mes?.toLowerCase()] || 0);
+      const mesB = typeof b.month === 'number' ? b.month : (mesesValores[b.mes?.toLowerCase()] || 0);
+
+      const totalA = (anioA * 12) + mesA;
+      const totalB = (anioB * 12) + mesB;
+
+      return sortAsc ? totalA - totalB : totalB - totalA;
     });
   }, [payments, searchTerm, sortAsc]);
 
@@ -120,11 +123,11 @@ export const PaymentsPage = () => {
                   Gestión de Pagos
                 </Typography>
                 <Typography sx={{ mt: 0.8, color: "#6b7280", fontSize: { xs: 13, sm: 14 } }}>
-                  Controlá el estado de cuenta y filtrá por socio o entrenador.
+                  Controlá el estado de cuenta por fecha real (Año/Mes).
                 </Typography>
               </Box>
 
-              {/* BARRA DE HERRAMIENTAS: BUSCAR + ORDENAR + CREAR */}
+              {/* BARRA DE HERRAMIENTAS */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ width: { xs: "100%", md: "auto" } }}>
                 <TextField
                   size="small"
@@ -144,10 +147,10 @@ export const PaymentsPage = () => {
                 <Button
                   variant="outlined"
                   onClick={() => setSortAsc(!sortAsc)}
-                  startIcon={<SortIcon />}
+                  startIcon={<SortIcon sx={{ transform: sortAsc ? 'none' : 'rotate(180deg)', transition: '0.2s' }} />}
                   sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(24, 119, 242, 0.3)", color: "#1877F2", fontWeight: 600 }}
                 >
-                  {sortAsc ? "Pago Antiguo" : "Pago Reciente"}
+                  {sortAsc ? "Más Antiguo" : "Más Reciente"}
                 </Button>
 
                 <Button
@@ -161,39 +164,29 @@ export const PaymentsPage = () => {
             </Stack>
           </Box>
 
-          {/* Tabla de Pagos Filtrada y Ordenada */}
           <Box sx={{ overflowX: "auto" }}>
             <PaymentTable
               payments={processedPayments}
               shares={shares}
-              onToggle={async (id) => {
-                await togglePayment(id);
-                loadData();
-              }}
-              onUpdateShare={async (id, shareId) => {
-                await updatePaymentShare(id, shareId);
-                loadData();
-              }}
+              onToggle={async (id) => { await togglePayment(id); loadData(); }}
+              onUpdateShare={async (id, shareId) => { await updatePaymentShare(id, shareId); loadData(); }}
             />
           </Box>
         </Box>
 
-        {/* Modal de Generación */}
         <Dialog open={open} onClose={handleClose} fullScreen={fullScreen} maxWidth="md" fullWidth>
           <DialogTitle sx={{ fontWeight: 700 }}>Generar nuevos pagos</DialogTitle>
           <DialogContent>
-            <Box sx={{ mt: 1 }}>
-              <PaymentGenerateForm
-                shares={shares}
-                socios={socios}
-                onGenerate={async (data) => {
-                  await generatePayments(data);
-                  handleClose();
-                  loadData();
-                }}
-                onCancel={handleClose}
-              />
-            </Box>
+            <PaymentGenerateForm
+              shares={shares}
+              socios={socios}
+              onGenerate={async (data) => {
+                await generatePayments(data);
+                handleClose();
+                loadData();
+              }}
+              onCancel={handleClose}
+            />
           </DialogContent>
         </Dialog>
       </Container>

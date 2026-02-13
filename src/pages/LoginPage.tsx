@@ -48,19 +48,20 @@ export default function LoginPage({ onLogin }: any) {
         py: 4,
       }}
     >
-      <Container maxWidth="md">
+      {/* Agrandamos el maxWidth del Container de md (900px) a lg (1200px) o un valor personalizado */}
+      <Container sx={{ maxWidth: "1000px !important" }}> 
         <Paper
           elevation={24}
           sx={{
             position: "relative",
-            p: { xs: 4, sm: 8, md: 10 },
-            borderRadius: 8,
+            p: { xs: 4, sm: 10, md: 12 }, // Aumentamos padding para que la card se vea más imponente
+            borderRadius: 10, // Un poco más de redondeo para el nuevo tamaño
             overflow: "hidden",
             bgcolor: "white",
-            minHeight: "650px",
+            minHeight: "750px", // Aumentamos la altura mínima de la card
             display: "flex",
-            alignItems: "center", // Centra verticalmente el contenido
-            justifyContent: "center", // Centra horizontalmente el contenido
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           {/* Imagen de Fondo */}
@@ -79,7 +80,7 @@ export default function LoginPage({ onLogin }: any) {
             }}
           />
 
-          {/* Overlay suave para mejorar legibilidad en todo el fondo */}
+          {/* Overlay suave */}
           <Box
             sx={{
               position: "absolute",
@@ -87,7 +88,7 @@ export default function LoginPage({ onLogin }: any) {
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(255, 255, 255, 0.7)",
+              background: "rgba(255, 255, 255, 0.75)", // Un toque más de opacidad blanca por el tamaño
               zIndex: 1,
             }}
           />
@@ -98,20 +99,20 @@ export default function LoginPage({ onLogin }: any) {
               position: "relative", 
               zIndex: 2, 
               width: "100%", 
-              maxWidth: "550px", // Ancho ideal para los inputs
-              mx: "auto", // Centra el bloque de contenido
-              textAlign: "center" // Centra todos los textos
+              maxWidth: "600px", // Agrandamos el ancho de los inputs para que no se vean pequeños en la card grande
+              mx: "auto", 
+              textAlign: "center"
             }}
           >
-            <Box mb={6}>
+            <Box mb={8}> {/* Más margen inferior para el título */}
               <Typography
                 variant="h1"
                 sx={{
                   fontWeight: 950,
                   color: "#023e8a",
-                  letterSpacing: -2,
+                  letterSpacing: -3,
                   mb: 1,
-                  fontSize: { xs: "3.5rem", sm: "4.5rem", md: "5.5rem" },
+                  fontSize: { xs: "4rem", sm: "5.5rem", md: "6.5rem" }, // Títulos más grandes
                   lineHeight: 1
                 }}
               >
@@ -123,15 +124,15 @@ export default function LoginPage({ onLogin }: any) {
                   fontWeight: 600,
                   color: "#4b5563",
                   textTransform: "uppercase",
-                  letterSpacing: { xs: 4, sm: 8 },
-                  fontSize: { xs: "0.8rem", sm: "1.1rem" },
+                  letterSpacing: { xs: 5, sm: 10 },
+                  fontSize: { xs: "0.9rem", sm: "1.3rem" },
                 }}
               >
                 Espacio Deportivo
               </Typography>
             </Box>
 
-            <Stack spacing={3.5}>
+            <Stack spacing={4}> {/* Más espacio entre inputs */}
               <TextField
                 label="Número de DNI"
                 variant="filled"
@@ -141,18 +142,20 @@ export default function LoginPage({ onLogin }: any) {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <PersonIcon sx={{ color: "#023e8a", fontSize: "1.6rem" }} />
+                      <PersonIcon sx={{ color: "#023e8a", fontSize: "1.8rem" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{ 
                   "& .MuiFilledInput-root": { 
-                    borderRadius: 3, 
+                    borderRadius: 4, 
                     bgcolor: "white",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                    boxShadow: "0 6px 15px rgba(0,0,0,0.06)",
+                    fontSize: "1.1rem",
                     "&:hover": { bgcolor: "white" },
                     "&.Mui-focused": { bgcolor: "white" }
-                  } 
+                  },
+                  "& .MuiInputLabel-root": { fontSize: "1.1rem" }
                 }}
               />
 
@@ -166,23 +169,25 @@ export default function LoginPage({ onLogin }: any) {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LockIcon sx={{ color: "#023e8a", fontSize: "1.6rem" }} />
+                      <LockIcon sx={{ color: "#023e8a", fontSize: "1.8rem" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{ 
                   "& .MuiFilledInput-root": { 
-                    borderRadius: 3, 
+                    borderRadius: 4, 
                     bgcolor: "white",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                    boxShadow: "0 6px 15px rgba(0,0,0,0.06)",
+                    fontSize: "1.1rem",
                     "&:hover": { bgcolor: "white" },
                     "&.Mui-focused": { bgcolor: "white" }
-                  } 
+                  },
+                  "& .MuiInputLabel-root": { fontSize: "1.1rem" }
                 }}
               />
 
               {error && (
-                <Alert severity="error" variant="filled" sx={{ borderRadius: 3, fontWeight: 600 }}>
+                <Alert severity="error" variant="filled" sx={{ borderRadius: 3, fontWeight: 700, fontSize: "1rem" }}>
                   {error}
                 </Alert>
               )}
@@ -191,17 +196,17 @@ export default function LoginPage({ onLogin }: any) {
                 variant="contained"
                 onClick={handleLogin}
                 sx={{
-                  mt: 2,
-                  py: 2.5,
+                  mt: 4,
+                  py: 3, // Botón más robusto
                   fontWeight: 900,
-                  fontSize: "1.3rem",
-                  borderRadius: 4,
+                  fontSize: "1.5rem",
+                  borderRadius: 5,
                   textTransform: "uppercase",
                   background: "linear-gradient(90deg, #023e8a, #0077b6)",
-                  boxShadow: "0 12px 30px rgba(2, 62, 138, 0.4)",
+                  boxShadow: "0 15px 35px rgba(2, 62, 138, 0.45)",
                   "&:hover": {
-                    transform: "translateY(-3px)",
-                    boxShadow: "0 15px 40px rgba(2, 62, 138, 0.5)",
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 20px 45px rgba(2, 62, 138, 0.55)",
                   },
                 }}
               >
