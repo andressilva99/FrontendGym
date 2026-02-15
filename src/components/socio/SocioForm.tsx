@@ -4,10 +4,7 @@ import {
   Stack,
 } from "@mui/material";
 
-import type {
-  Trainer,
-  SocioFormData,
-} from "../../../types/socio.types";
+import type { Trainer, SocioFormData } from "../../types/socio.types";
 
 interface Props {
   formData: SocioFormData;

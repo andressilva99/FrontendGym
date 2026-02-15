@@ -22,12 +22,21 @@ export default function ShareForm({ share, onFinish, onCancel }: Props) {
     quoteDate: "",
   });
 
+  // 🔹 Formatea fecha a YYYY-MM-DD sin corrimiento de zona horaria
+  const formatDateForInput = (date: string | Date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     if (share) {
       setForm({
         numberDays: String(share.numberDays),
         amount: String(share.amount),
-        quoteDate: share.quoteDate.slice(0, 10),
+        quoteDate: formatDateForInput(share.quoteDate),
       });
     } else {
       setForm({ numberDays: "", amount: "", quoteDate: "" });
@@ -38,7 +47,8 @@ export default function ShareForm({ share, onFinish, onCancel }: Props) {
     const payload = {
       numberDays: Number(form.numberDays),
       amount: Number(form.amount),
-      quoteDate: form.quoteDate,
+      // 🔹 Se fuerza hora local para evitar que reste 1 día
+      quoteDate: new Date(form.quoteDate + "T00:00:00"),
     };
 
     if (share) {
