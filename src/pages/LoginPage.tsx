@@ -9,14 +9,24 @@ import {
   Alert,
   InputAdornment,
   Stack,
+  IconButton, // Añadido
 } from "@mui/material";
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
+// Importamos los iconos de visibilidad
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function LoginPage({ onLogin }: any) {
   const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  
+  // 1. Estado para controlar la visibilidad
+  const [showPassword, setShowPassword] = useState(false);
+
+  // 2. Función para alternar el estado
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
 
   const handleLogin = async () => {
     try {
@@ -48,23 +58,21 @@ export default function LoginPage({ onLogin }: any) {
         py: 4,
       }}
     >
-      {/* Agrandamos el maxWidth del Container de md (900px) a lg (1200px) o un valor personalizado */}
       <Container sx={{ maxWidth: "1000px !important" }}> 
         <Paper
           elevation={24}
           sx={{
             position: "relative",
-            p: { xs: 4, sm: 10, md: 12 }, // Aumentamos padding para que la card se vea más imponente
-            borderRadius: 10, // Un poco más de redondeo para el nuevo tamaño
+            p: { xs: 4, sm: 10, md: 12 },
+            borderRadius: 10,
             overflow: "hidden",
             bgcolor: "white",
-            minHeight: "300px", // Aumentamos la altura mínima de la card
+            minHeight: "350px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          {/* Imagen de Fondo */}
           <Box
             sx={{
               position: "absolute",
@@ -80,7 +88,6 @@ export default function LoginPage({ onLogin }: any) {
             }}
           />
 
-          {/* Overlay suave */}
           <Box
             sx={{
               position: "absolute",
@@ -88,23 +95,22 @@ export default function LoginPage({ onLogin }: any) {
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(255, 255, 255, 0.75)", // Un toque más de opacidad blanca por el tamaño
+              background: "rgba(255, 255, 255, 0.75)",
               zIndex: 1,
             }}
           />
 
-          {/* Contenido Centrado */}
           <Box 
             sx={{ 
               position: "relative", 
               zIndex: 2, 
               width: "100%", 
-              maxWidth: "600px", // Agrandamos el ancho de los inputs para que no se vean pequeños en la card grande
+              maxWidth: "600px", 
               mx: "auto", 
               textAlign: "center"
             }}
           >
-            <Box mb={8}> {/* Más margen inferior para el título */}
+            <Box mb={8}>
               <Typography
                 variant="h1"
                 sx={{
@@ -112,7 +118,7 @@ export default function LoginPage({ onLogin }: any) {
                   color: "#023e8a",
                   letterSpacing: -3,
                   mb: 1,
-                  fontSize: { xs: "4rem", sm: "5.5rem", md: "6.5rem" }, // Títulos más grandes
+                  fontSize: { xs: "4rem", sm: "5.5rem", md: "6.5rem" },
                   lineHeight: 1
                 }}
               >
@@ -132,7 +138,7 @@ export default function LoginPage({ onLogin }: any) {
               </Typography>
             </Box>
 
-            <Stack spacing={4}> {/* Más espacio entre inputs */}
+            <Stack spacing={4}>
               <TextField
                 label="Número de DNI"
                 variant="filled"
@@ -161,7 +167,8 @@ export default function LoginPage({ onLogin }: any) {
 
               <TextField
                 label="Contraseña"
-                type="password"
+                // 3. El tipo cambia dinámicamente entre 'password' y 'text'
+                type={showPassword ? "text" : "password"}
                 variant="filled"
                 fullWidth
                 value={password}
@@ -170,6 +177,19 @@ export default function LoginPage({ onLogin }: any) {
                   startAdornment: (
                     <InputAdornment position="start">
                       <LockIcon sx={{ color: "#023e8a", fontSize: "1.8rem" }} />
+                    </InputAdornment>
+                  ),
+                  // 4. Añadimos el icono al final
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        edge="end"
+                        sx={{ color: "#023e8a", mr: 1 }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
                     </InputAdornment>
                   ),
                 }}
@@ -197,7 +217,7 @@ export default function LoginPage({ onLogin }: any) {
                 onClick={handleLogin}
                 sx={{
                   mt: 4,
-                  py: 3, // Botón más robusto
+                  py: 3,
                   fontWeight: 900,
                   fontSize: "1.5rem",
                   borderRadius: 5,
