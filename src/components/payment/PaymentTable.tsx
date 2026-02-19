@@ -23,10 +23,15 @@ const MONTHS = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
+// Función auxiliar para formatear la fecha de pago
 const formatDate = (date: any) => {
-  if (!date) return "N/A";
+  if (!date) return "—";
   const d = new Date(date);
-  return d.toLocaleDateString("es-AR");
+  return d.toLocaleDateString("es-AR", {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 };
 
 interface Props {
@@ -46,7 +51,7 @@ export const PaymentTable = ({
 }: Props) => {
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // 🔹 Ordenar Cuotas: Más reciente a más antigua para el selector de edición
+  // Ordenar cuotas disponibles por fecha de vigencia
   const sortedShares = useMemo(() => {
     return [...shares].sort((a, b) => 
       new Date(b.quoteDate).getTime() - new Date(a.quoteDate).getTime()
@@ -54,7 +59,7 @@ export const PaymentTable = ({
   }, [shares]);
 
   return (
-    <Paper elevation={0}>
+    <Paper elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.05)" }}>
       <Table>
         <TableHead sx={{ bgcolor: "#f8f9fa" }}>
           <TableRow>
@@ -63,7 +68,7 @@ export const PaymentTable = ({
             <TableCell sx={{ fontWeight: "bold" }}>Cuota / Monto</TableCell>
             <TableCell sx={{ fontWeight: "bold" }}>Año</TableCell>
             <TableCell sx={{ fontWeight: "bold" }}>Mes</TableCell>
-            <TableCell sx={{ fontWeight: "bold" }}>Pagado</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }} align="center">Pagado</TableCell>
             <TableCell sx={{ fontWeight: "bold" }}>Fecha Pago</TableCell>
             <TableCell sx={{ fontWeight: "bold" }} align="center">Acciones</TableCell>
           </TableRow>
@@ -71,16 +76,16 @@ export const PaymentTable = ({
 
         <TableBody>
           {payments.map((p) => (
-            <TableRow key={p._id} hover>
-              <TableCell>
-                {p.socioId
-                  ? `${p.socioId.apellido}, ${p.socioId.nombre}`
-                  : "Sin socio"}
+            <TableRow 
+              key={p._id} 
+              hover 
+              sx={{ bgcolor: p.isPaid ? "rgba(76, 175, 80, 0.02)" : "inherit" }}
+            >
+              <TableCell sx={{ fontWeight: 600 }}>
+                {p.socioId ? `${p.socioId.apellido}, ${p.socioId.nombre}` : "Sin socio"}
               </TableCell>
 
-              <TableCell>
-                {p.socioId?.trainerId?.username ?? "-"}
-              </TableCell>
+              <TableCell>{p.socioId?.trainerId?.username ?? "-"}</TableCell>
 
               <TableCell>
                 {editingId === p._id && !p.isPaid ? (
@@ -95,7 +100,6 @@ export const PaymentTable = ({
                     onClose={() => setEditingId(null)}
                     sx={{ minWidth: 180 }}
                   >
-                    {/* 🔹 Usamos sortedShares en lugar de shares */}
                     {sortedShares.map((s) => (
                       <MenuItem key={s._id} value={s._id}>
                         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -111,19 +115,13 @@ export const PaymentTable = ({
                   </Select>
                 ) : (
                   <Box display="flex" alignItems="center" gap={1}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: "#1e293b" }}>
                       ${p.shareId?.amount ?? 0}
                     </Typography>
                     {!p.isPaid && (
-                      <Tooltip title="Cambiar cuota">
-                        <IconButton
-                          size="small"
-                          onClick={() => setEditingId(p._id)}
-                          sx={{ color: '#1877F2', p: 0.5 }}
-                        >
-                          <Edit fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <IconButton size="small" onClick={() => setEditingId(p._id)} sx={{ color: '#1877F2' }}>
+                        <Edit fontSize="small" />
+                      </IconButton>
                     )}
                   </Box>
                 )}
@@ -132,29 +130,31 @@ export const PaymentTable = ({
               <TableCell>{p.year}</TableCell>
               <TableCell>{MONTHS[p.month]}</TableCell>
 
-              <TableCell>
-                <Checkbox
-                  checked={p.isPaid}
-                  onChange={() => onToggle(p._id)}
-                  color="primary"
-                />
+              <TableCell align="center">
+                <Tooltip title={p.isPaid ? "Marcar como pendiente" : "Marcar como pagado"}>
+                  <Checkbox
+                    checked={p.isPaid}
+                    onChange={() => onToggle(p._id)}
+                    color="primary"
+                    sx={{ '& .MuiSvgIcon-root': { fontSize: 26 } }}
+                  />
+                </Tooltip>
               </TableCell>
 
               <TableCell>
-                {p.paymentDate ? formatDate(p.paymentDate) : "—"}
+                {p.isPaid ? (
+                  <Typography variant="body2" sx={{ color: "#2e7d32", fontWeight: 600 }}>
+                    {formatDate(p.paymentDate)}
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" color="textDisabled">Pendiente</Typography>
+                )}
               </TableCell>
 
               <TableCell align="center">
-                <Tooltip title="Eliminar registro">
-                  <IconButton 
-                    size="small" 
-                    color="error" 
-                    onClick={() => onDelete(p._id)}
-                    sx={{ "&:hover": { bgcolor: "rgba(211, 47, 47, 0.04)" } }}
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                <IconButton color="error" onClick={() => onDelete(p._id)}>
+                  <Delete fontSize="small" />
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}
