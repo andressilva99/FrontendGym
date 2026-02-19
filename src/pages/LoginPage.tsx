@@ -58,7 +58,7 @@ export default function LoginPage({ onLogin }: any) {
             borderRadius: 10, // Un poco más de redondeo para el nuevo tamaño
             overflow: "hidden",
             bgcolor: "white",
-            minHeight: "750px", // Aumentamos la altura mínima de la card
+            minHeight: "300px", // Aumentamos la altura mínima de la card
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
