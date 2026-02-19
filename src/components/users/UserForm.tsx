@@ -4,7 +4,6 @@ import {
   MenuItem,
   Paper,
   TextField,
-  Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { User } from "../../types/user.types";
