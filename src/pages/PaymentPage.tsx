@@ -13,12 +13,15 @@ import {
   IconButton,
   Tooltip,
   TextField,
-  InputAdornment,
+  Tabs,
+  Tab,
+  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
+import Swal from 'sweetalert2';
 
 import {
   getPayments,
@@ -27,23 +30,31 @@ import {
   updatePaymentShare,
 } from "../api/payment.api";
 import { api } from "../api/axios";
-import type { Payment, Share, Socio } from "../types/payment.types";
+
+import type { 
+  Payment, 
+  Share, 
+  Socio, 
+  GeneratePaymentDto 
+} from "../types/payment.types";
+import type { User } from "../types/user.types";
 import { PaymentGenerateForm } from "../components/payment/PaymentGenerateForm";
 import { PaymentTable } from "../components/payment/PaymentTable";
 
-// Mapeo para cuando el mes viene como texto en la tabla
-const mesesValores: { [key: string]: number } = {
-  "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
-  "julio": 7, "agosto": 8, "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12
-};
+interface Props {
+  user: User;
+}
 
-export const PaymentsPage = () => {
+export const PaymentsPage = ({ user }: Props) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [shares, setShares] = useState<Share[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortAsc, setSortAsc] = useState(false); 
   const [open, setOpen] = useState(false);
+  
+  // 🔹 Filtro de estado: "all" | "paid" | "unpaid"
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const navigate = useNavigate();
   const theme = useTheme();
@@ -56,134 +67,200 @@ export const PaymentsPage = () => {
         api.get("/shares"),
         api.get("/socios"),
       ]);
-      setPayments(paymentsData);
+
+      let filteredPayments: Payment[] = paymentsData;
+      let filteredSocios: Socio[] = sociosRes.data;
+
+      if (user.role === "ENTRENADOR") {
+        filteredSocios = sociosRes.data.filter(
+          (s: Socio) => s.trainerId?.username === user.username
+        );
+        filteredPayments = paymentsData.filter(
+          (p: Payment) => p.socioId?.trainerId?.username === user.username
+        );
+      }
+
+      setPayments(filteredPayments);
       setShares(sharesRes.data);
-      setSocios(sociosRes.data);
+      setSocios(filteredSocios);
     } catch (error) {
       console.error("Error cargando datos:", error);
+      Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
     }
   };
 
   useEffect(() => { loadData(); }, []);
 
-  const processedPayments = useMemo(() => {
-    const filtered = payments.filter((p: any) => {
-      const search = searchTerm.toLowerCase();
-      const socioNombre = `${p.socioId?.nombre || ''} ${p.socioId?.apellido || ''}`.toLowerCase();
-      const trainerNombre = (p.socioId?.trainerId?.nombre || '').toLowerCase();
-      return socioNombre.includes(search) || trainerNombre.includes(search);
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: "El registro de este pago se eliminará permanentemente.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
     });
 
-    return [...filtered].sort((a: any, b: any) => {
-      // Priorizamos los campos numéricos year/month si existen, sino usamos año/mes string
-      const anioA = parseInt(a.year || a.año || 0);
-      const anioB = parseInt(b.year || b.año || 0);
-      
-      const mesA = typeof a.month === 'number' ? a.month : (mesesValores[a.mes?.toLowerCase()] || 0);
-      const mesB = typeof b.month === 'number' ? b.month : (mesesValores[b.mes?.toLowerCase()] || 0);
+    if (result.isConfirmed) {
+      try {
+        await api.delete(`/payments/${id}`);
+        Swal.fire({
+          title: 'Eliminado',
+          text: 'El pago ha sido borrado con éxito.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        loadData();
+      } catch (error) {
+        Swal.fire('Error', 'No se pudo eliminar el registro', 'error');
+      }
+    }
+  };
 
-      const totalA = (anioA * 12) + mesA;
-      const totalB = (anioB * 12) + mesB;
+  // 🔹 Lógica combinada: Búsqueda + Filtro de Estado + Orden
+  const processedPayments = useMemo(() => {
+    const filtered = payments.filter((p) => {
+      // 1. Búsqueda por texto
+      const search = searchTerm.toLowerCase();
+      const socioFull = `${p.socioId?.nombre || ''} ${p.socioId?.apellido || ''}`.toLowerCase();
+      const trainerUser = (p.socioId?.trainerId?.username || '').toLowerCase();
+      const matchesSearch = socioFull.includes(search) || trainerUser.includes(search);
 
+      // 2. Filtro por estado del pago
+      const matchesStatus = 
+        statusFilter === "all" ? true :
+        statusFilter === "paid" ? p.isPaid === true :
+        p.isPaid === false;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    // 3. Ordenamiento por año/mes
+    return [...filtered].sort((a, b) => {
+      const totalA = (a.year * 12) + a.month;
+      const totalB = (b.year * 12) + b.month;
       return sortAsc ? totalA - totalB : totalB - totalA;
     });
-  }, [payments, searchTerm, sortAsc]);
+  }, [payments, searchTerm, sortAsc, statusFilter]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f5f7fb", px: { xs: 1.5, sm: 3, md: 4 }, py: { xs: 2, sm: 3 } }}>
-      {/* ===== HEADER ===== */}
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f5f7fb", px: { xs: 1, sm: 3, md: 4 }, py: { xs: 2, sm: 3 } }}>
+      
+      {/* HEADER */}
       <Box sx={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", mb: { xs: 2, sm: 3 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 1.5 } }}>
-          <Box component="img" src="/logo.png" alt="Logo" sx={{ width: { xs: 44, sm: 56, md: 64 }, height: { xs: 44, sm: 56, md: 64 }, borderRadius: "50%", objectFit: "cover", boxShadow: "0 4px 12px rgba(24,119,242,0.15)" }} />
-          <Box sx={{ lineHeight: 1 }}>
-            <Typography sx={{ fontWeight: 800, color: "#1877F2", fontSize: { xs: 12, sm: 14, md: 16 }, letterSpacing: 0.2 }}>
-              Oxígeno Espacio Deportivo
-            </Typography>
-          </Box>
+          <Box component="img" src="/logo.png" sx={{ width: { xs: 45, sm: 56 }, height: { xs: 45, sm: 56 }, borderRadius: "50%" }} />
+          <Typography sx={{ fontWeight: 800, color: "#1877F2", fontSize: { xs: 12, sm: 16 } }}>
+            Oxígeno Espacio Deportivo
+          </Typography>
         </Box>
-        <Tooltip title="Ir al Dashboard">
-          <IconButton onClick={() => navigate("/")} sx={{ color: "#1877F2", bgcolor: "rgba(24, 119, 242, 0.05)", border: "1px solid rgba(24, 119, 242, 0.1)", "&:hover": { bgcolor: "rgba(24, 119, 242, 0.12)", transform: "scale(1.05)" }, transition: "all 0.2s" }}>
-            <HomeIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 } }} />
+        <Tooltip title="Volver al Inicio">
+          <IconButton onClick={() => navigate("/")} sx={{ color: "#1877F2", bgcolor: "rgba(24, 119, 242, 0.1)" }}>
+            <HomeIcon sx={{ fontSize: { xs: 28, sm: 32 } }} />
           </IconButton>
         </Tooltip>
       </Box>
 
-      {/* ===== CONTENIDO PRINCIPAL ===== */}
-      <Container maxWidth={false} sx={{ maxWidth: 2000, mx: "auto", mt: { xs: 1, sm: 1.5, md: 2 } }}>
-        <Box sx={{ bgcolor: "white", borderRadius: 3, boxShadow: "0 10px 30px rgba(17,24,39,0.08)", border: "1px solid rgba(0,0,0,0.06)", overflow: "hidden" }}>
+      {/* CONTENIDO PRINCIPAL */}
+      <Container maxWidth={false} sx={{ maxWidth: 2000, p: { xs: 0, sm: 2 } }}>
+        <Box sx={{ bgcolor: "white", borderRadius: { xs: 2, sm: 3 }, boxShadow: "0 10px 30px rgba(0,0,0,0.05)", overflow: "hidden" }}>
           
-          {/* Header de la Card */}
-          <Box sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 2.5 }, borderBottom: "1px solid rgba(0,0,0,0.06)", background: "linear-gradient(180deg, rgba(24,119,242,0.08), rgba(255,255,255,0))" }}>
-            <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems={{ xs: "stretch", md: "center" }} justifyContent="space-between">
-              <Box>
-                <Typography sx={{ fontWeight: 900, color: "#111827", fontSize: { xs: 26, sm: 32, md: 36 }, lineHeight: 1.05 }}>
-                  Gestión de Pagos
-                </Typography>
-                <Typography sx={{ mt: 0.8, color: "#6b7280", fontSize: { xs: 13, sm: 14 } }}>
-                  Controlá el estado de cuenta por fecha real (Año/Mes).
+          <Box sx={{ px: { xs: 2, sm: 3 }, py: 2.5, borderBottom: "1px solid rgba(0,0,0,0.06)", background: "linear-gradient(180deg, rgba(24,119,242,0.05), #fff)" }}>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems="center" justifyContent="space-between" mb={2}>
+              <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
+                <Typography variant="h4" sx={{ fontWeight: 900 }}>Gestión de Pagos</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {user.role === "ENTRENADOR" ? `Vista restringida: ${user.username}` : "Panel de Administración Full"}
                 </Typography>
               </Box>
 
-              {/* BARRA DE HERRAMIENTAS */}
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ width: { xs: "100%", md: "auto" } }}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ width: { xs: "100%", sm: "auto" } }}>
                 <TextField
                   size="small"
-                  placeholder="Buscar socio"
+                  placeholder="Buscar socio o entrenador..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{ width: { xs: "100%", sm: 280 }, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "white" } }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: "#6b7280" }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  InputProps={{ startAdornment: <SearchIcon sx={{ color: 'gray', mr: 1, fontSize: 20 }} /> }}
+                  sx={{ minWidth: { sm: 250 } }}
                 />
-
-                <Button
-                  variant="outlined"
-                  onClick={() => setSortAsc(!sortAsc)}
-                  startIcon={<SortIcon sx={{ transform: sortAsc ? 'none' : 'rotate(180deg)', transition: '0.2s' }} />}
-                  sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(24, 119, 242, 0.3)", color: "#1877F2", fontWeight: 600 }}
-                >
-                  {sortAsc ? "Más Antiguo" : "Más Reciente"}
+                <Button variant="outlined" onClick={() => setSortAsc(!sortAsc)} startIcon={<SortIcon />} sx={{textTransform: 'none', px: 3 }}>
+                  {sortAsc ? "Más Antiguos" : "Más Recientes"}
                 </Button>
-
-                <Button
-                  variant="contained"
-                  onClick={handleOpen}
-                  sx={{ bgcolor: "#1877F2", textTransform: "none", borderRadius: 2, px: 2.5, fontWeight: 700, boxShadow: "0 8px 18px rgba(24,119,242,0.25)", "&:hover": { bgcolor: "#166fe5" } }}
-                >
+                <Button variant="contained" onClick={handleOpen} sx={{ bgcolor: "#1877F2", textTransform: 'none', px: 3 }}>
                   Generar pagos
                 </Button>
               </Stack>
             </Stack>
+
+            {/* BARRA DE FILTRADO POR ESTADO */}
+            <Divider sx={{ mb: 1 }} />
+            <Tabs 
+              value={statusFilter} 
+              onChange={(_, val) => setStatusFilter(val)}
+              indicatorColor="primary"
+              textColor="primary"
+            >
+              <Tab label="Todos" value="all" sx={{ textTransform: 'none', fontWeight: 700 }} />
+              <Tab label="Pagados" value="paid" sx={{ textTransform: 'none', fontWeight: 700 }} />
+              <Tab label="Pendientes" value="unpaid" sx={{ textTransform: 'none', fontWeight: 700 }} />
+            </Tabs>
           </Box>
 
-          <Box sx={{ overflowX: "auto" }}>
+          <Box sx={{ width: "100%", overflowX: "auto" }}>
             <PaymentTable
               payments={processedPayments}
               shares={shares}
               onToggle={async (id) => { await togglePayment(id); loadData(); }}
               onUpdateShare={async (id, shareId) => { await updatePaymentShare(id, shareId); loadData(); }}
+              onDelete={handleDelete}
             />
           </Box>
         </Box>
 
+        {/* MODAL DE GENERACIÓN */}
         <Dialog open={open} onClose={handleClose} fullScreen={fullScreen} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ fontWeight: 700 }}>Generar nuevos pagos</DialogTitle>
-          <DialogContent>
+          <DialogTitle sx={{ fontWeight: 700 }}>Generar Cuotas Mensuales</DialogTitle>
+          <DialogContent sx={{ pb: 3 }}>
             <PaymentGenerateForm
               shares={shares}
               socios={socios}
-              onGenerate={async (data) => {
-                await generatePayments(data);
-                handleClose();
-                loadData();
+              onGenerate={async (data: GeneratePaymentDto) => {
+                const duplicados = data.socioIds.map(id => {
+                  const s = socios.find(soc => soc._id === id);
+                  const existe = payments.find(p => {
+                    const pSocioId = typeof p.socioId === 'object' ? p.socioId?._id : p.socioId;
+                    return pSocioId === id && p.year === data.year && p.month === data.month;
+                  });
+                  return existe ? `${s?.nombre} ${s?.apellido}` : null;
+                }).filter(n => n !== null);
+
+                if (duplicados.length > 0) {
+                  handleClose(); 
+                  Swal.fire({
+                    title: 'Acción Bloqueada',
+                    html: `<div style="text-align: left;">Ya existen cuotas para:<br><b style="color:#d32f2f">${duplicados.join(', ')}</b><br>en el periodo seleccionado.</div>`,
+                    icon: 'error',
+                    confirmButtonColor: '#1877F2',
+                  });
+                  return; 
+                }
+
+                try {
+                  Swal.fire({ title: 'Generando...', didOpen: () => Swal.showLoading() });
+                  await generatePayments(data);
+                  handleClose();
+                  await Swal.fire({ icon: 'success', title: 'Pagos generados', timer: 1500, showConfirmButton: false });
+                  loadData(); 
+                } catch (error) {
+                  Swal.fire('Error', 'No se pudieron generar los pagos', 'error');
+                }
               }}
               onCancel={handleClose}
             />

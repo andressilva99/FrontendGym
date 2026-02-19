@@ -3,7 +3,6 @@ import {
   Button,
   Paper,
   TextField,
-  Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { Share } from "../../types/share.types";
@@ -22,7 +21,7 @@ export default function ShareForm({ share, onFinish, onCancel }: Props) {
     quoteDate: "",
   });
 
-  // 🔹 Formatea fecha a YYYY-MM-DD sin corrimiento de zona horaria
+  // Formatea la fecha para que el input type="date" la reconozca (YYYY-MM-DD)
   const formatDateForInput = (date: string | Date) => {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -39,52 +38,61 @@ export default function ShareForm({ share, onFinish, onCancel }: Props) {
         quoteDate: formatDateForInput(share.quoteDate),
       });
     } else {
-      setForm({ numberDays: "", amount: "", quoteDate: "" });
+      // Por defecto sugerimos la fecha de hoy al crear
+      setForm({ 
+        numberDays: "", 
+        amount: "", 
+        quoteDate: formatDateForInput(new Date()) 
+      });
     }
   }, [share]);
 
   const submit = async () => {
+    // 🔹 CORRECCIÓN: Validamos contra string vacío. Si es "0", es válido.
+    if (form.numberDays === "" || form.amount === "" || !form.quoteDate) {
+      return; 
+    }
+
     const payload = {
       numberDays: Number(form.numberDays),
       amount: Number(form.amount),
-      // 🔹 Se fuerza hora local para evitar que reste 1 día
+      // Ajuste para evitar desfase horario al guardar solo fecha
       quoteDate: new Date(form.quoteDate + "T00:00:00"),
     };
 
-    if (share) {
-      await updateShare(share._id, payload);
-    } else {
-      await createShare(payload);
+    try {
+      if (share) {
+        await updateShare(share._id, payload);
+      } else {
+        await createShare(payload);
+      }
+      onFinish();
+    } catch (error) {
+      console.error("Error al guardar la cuota:", error);
     }
-
-    onFinish();
   };
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 420, margin: "auto" }}>
-      <Typography variant="h6" mb={2} textAlign="center">
-        {share ? "Editar Cuota" : "Crear Cuota"}
-      </Typography>
-
-      <Box display="grid" gap={2}>
+    <Paper elevation={0} sx={{ p: 1, maxWidth: 420, margin: "auto" }}>
+      <Box display="grid" gap={3}>
         <TextField
           label="Cantidad de días"
           type="number"
           value={form.numberDays}
-          onChange={e =>
-            setForm({ ...form, numberDays: e.target.value })
-          }
+          onChange={e => setForm({ ...form, numberDays: e.target.value })}
           fullWidth
+          helperText="Usa 0 para cuotas sin vencimiento"
+          inputProps={{ min: 0 }}
         />
 
         <TextField
-          label="Monto"
+          label="Monto ($)"
           type="number"
           value={form.amount}
-          onChange={e =>
-            setForm({ ...form, amount: e.target.value })
-          }
+          onChange={e => setForm({ ...form, amount: e.target.value })}
           fullWidth
+          helperText="Usa 0 para becas o invitados"
+          inputProps={{ min: 0 }}
         />
 
         <TextField
@@ -92,18 +100,31 @@ export default function ShareForm({ share, onFinish, onCancel }: Props) {
           type="date"
           InputLabelProps={{ shrink: true }}
           value={form.quoteDate}
-          onChange={e =>
-            setForm({ ...form, quoteDate: e.target.value })
-          }
+          onChange={e => setForm({ ...form, quoteDate: e.target.value })}
           fullWidth
         />
 
-        <Box display="flex" gap={2}>
-          <Button fullWidth variant="outlined" onClick={onCancel}>
+        <Box display="flex" gap={2} mt={1}>
+          <Button 
+            fullWidth 
+            variant="outlined" 
+            onClick={onCancel} 
+            color="inherit"
+          >
             Cancelar
           </Button>
-          <Button fullWidth variant="contained" onClick={submit}>
-            {share ? "Actualizar" : "Crear"}
+          <Button 
+            fullWidth 
+            variant="contained" 
+            onClick={submit}
+            // 🔹 El botón se habilita aunque el valor sea "0"
+            disabled={form.amount === "" || form.numberDays === "" || !form.quoteDate}
+            sx={{ 
+              bgcolor: "#1877F2",
+              "&:hover": { bgcolor: "#1565C0" }
+            }}
+          >
+            {share ? "Actualizar" : "Crear Cuota"}
           </Button>
         </Box>
       </Box>

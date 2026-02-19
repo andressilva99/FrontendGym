@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react"; // Agregamos useMemo
+import { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Button,
@@ -12,12 +12,12 @@ import {
   Stack,
   IconButton,
   Tooltip,
-  TextField, // Agregamos TextField
+  TextField,
   InputAdornment
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from '@mui/icons-material/Home';
-import SearchIcon from '@mui/icons-material/Search'; // Icono de lupa
+import SearchIcon from '@mui/icons-material/Search';
 
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -34,8 +34,6 @@ export const SociosPage = () => {
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [editing, setEditing] = useState<Socio | null>(null);
   const [open, setOpen] = useState(false);
-  
-  // ESTADO PARA EL FILTRO
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
@@ -58,9 +56,10 @@ export const SociosPage = () => {
 
   useEffect(() => { loadData(); }, []);
 
-  // LÓGICA DE FILTRADO (Busca en socio y en entrenador)
+  // 🔹 LÓGICA DE FILTRADO Y ORDENAMIENTO ALFABÉTICO
   const filteredSocios = useMemo(() => {
-    return socios.filter((s) => {
+    // 1. Filtrar
+    const result = socios.filter((s) => {
       const search = searchTerm.toLowerCase();
       const nombreSocio = `${s.nombre} ${s.apellido}`.toLowerCase();
       const nombreTrainer = typeof s.trainerId === 'object' && s.trainerId !== null 
@@ -68,6 +67,13 @@ export const SociosPage = () => {
         : "";
       
       return nombreSocio.includes(search) || nombreTrainer.includes(search);
+    });
+
+    // 2. Ordenar Alfabéticamente (Apellido, luego Nombre)
+    return [...result].sort((a, b) => {
+      const fullA = `${a.apellido} ${a.nombre}`.toLowerCase();
+      const fullB = `${b.apellido} ${b.nombre}`.toLowerCase();
+      return fullA.localeCompare(fullB, 'es', { sensitivity: 'base' });
     });
   }, [socios, searchTerm]);
 
@@ -150,7 +156,12 @@ export const SociosPage = () => {
           {/* BARRA DE BÚSQUEDA Y TÍTULO */}
           <Box sx={{ p: 3, borderBottom: "1px solid #eee" }}>
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center" justifyContent="space-between">
-              <Typography variant="h4" sx={{ fontWeight: 900 }}>Gestión de Socios</Typography>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 900 }}>Gestión de Socios</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {filteredSocios.length} socios encontrados
+                </Typography>
+              </Box>
               
               <Stack direction="row" spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
                 <TextField
@@ -182,7 +193,6 @@ export const SociosPage = () => {
           </Box>
 
           <Box sx={{ overflowX: "auto" }}>
-            {/* AQUÍ PASAMOS LA LISTA FILTRADA */}
             <SocioTable
               socios={filteredSocios}
               onEdit={handleOpenEdit}

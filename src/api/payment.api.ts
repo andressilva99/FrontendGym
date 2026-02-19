@@ -33,3 +33,8 @@ export const updatePaymentShare = async (
   });
   return data;
 };
+
+export const deletePayment = async (id: string) => {
+  const { data } = await api.delete(`/payments/${id}`);
+  return data;
+};

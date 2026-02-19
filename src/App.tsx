@@ -57,7 +57,7 @@ export default function App() {
               <Route path="/users" element={<UsersPage />} />
               <Route path="/socios" element={<SociosPage />} />
               <Route path="/shares" element={<SharesPage />} />
-              <Route path="/payments" element={<PaymentsPage />} />
+              <Route path="/payments" element={<PaymentsPage user={loggedUser}/>} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

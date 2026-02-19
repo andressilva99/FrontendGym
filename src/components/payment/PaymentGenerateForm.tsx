@@ -9,7 +9,7 @@ import {
   Typography,
   Checkbox,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Share, Socio } from "../../types/payment.types";
 
 interface Props {
@@ -39,6 +39,12 @@ const months = [
   { value: 12, label: "Diciembre" },
 ];
 
+const formatDate = (date: any) => {
+  if (!date) return "N/A";
+  const d = new Date(date);
+  return d.toLocaleDateString("es-AR");
+};
+
 export const PaymentGenerateForm = ({
   shares,
   socios,
@@ -50,24 +56,35 @@ export const PaymentGenerateForm = ({
   const [shareId, setShareId] = useState("");
   const [selectedSocios, setSelectedSocios] = useState<string[]>([]);
 
-  const allSelected =
-    socios.length > 0 && selectedSocios.length === socios.length;
+  // 🔹 Ordenar Cuotas: Más reciente a más antigua
+  const sortedShares = useMemo(() => {
+    return [...shares].sort((a, b) => 
+      new Date(b.quoteDate).getTime() - new Date(a.quoteDate).getTime()
+    );
+  }, [shares]);
 
-  const isIndeterminate =
-    selectedSocios.length > 0 &&
-    selectedSocios.length < socios.length;
+  // 🔹 Ordenar Alumnos: Alfabéticamente por Apellido y Nombre
+  const sortedSocios = useMemo(() => {
+    return [...socios].sort((a, b) => {
+      const nameA = `${a.apellido} ${a.nombre}`.toLowerCase();
+      const nameB = `${b.apellido} ${b.nombre}`.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  }, [socios]);
+
+  const allSelected = sortedSocios.length > 0 && selectedSocios.length === sortedSocios.length;
+  const isIndeterminate = selectedSocios.length > 0 && selectedSocios.length < sortedSocios.length;
 
   const handleSelectAll = () => {
     if (allSelected) {
       setSelectedSocios([]);
     } else {
-      setSelectedSocios(socios.map((s) => s._id));
+      setSelectedSocios(sortedSocios.map((s) => s._id));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     onGenerate({
       year,
       month,
@@ -88,7 +105,6 @@ export const PaymentGenerateForm = ({
           fullWidth
         />
 
-        {/* MES CON NOMBRE */}
         <FormControl fullWidth>
           <InputLabel>Mes</InputLabel>
           <Select
@@ -104,26 +120,24 @@ export const PaymentGenerateForm = ({
           </Select>
         </FormControl>
 
-        <FormControl fullWidth>
+        <FormControl fullWidth required>
           <InputLabel>Cuota</InputLabel>
           <Select
             value={shareId}
             label="Cuota"
             onChange={(e) => setShareId(e.target.value)}
           >
-            {shares.map((share) => (
+            {sortedShares.map((share) => (
               <MenuItem key={share._id} value={share._id}>
-                ${share.amount} - {share.numberDays} días - días - Actualizada:{" "}
-                        {new Date().toLocaleDateString("es-AR")}
+                ${share.amount} - {share.numberDays} días - Vigencia: {formatDate(share.quoteDate)}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        {/* LISTA PROFESIONAL DE SOCIOS */}
         <Box>
-          <Typography variant="subtitle1" mb={1}>
-            Socios (opcional)
+          <Typography variant="subtitle1" mb={1} sx={{ fontWeight: 'bold' }}>
+            Seleccionar Socios
           </Typography>
 
           <Box display="flex" alignItems="center" mb={1}>
@@ -147,29 +161,18 @@ export const PaymentGenerateForm = ({
               backgroundColor: "#fafafa",
             }}
           >
-            {socios.map((socio) => {
+            {sortedSocios.map((socio) => {
               const isChecked = selectedSocios.includes(socio._id);
 
               return (
-                <Box
-                  key={socio._id}
-                  display="flex"
-                  alignItems="center"
-                >
+                <Box key={socio._id} display="flex" alignItems="center">
                   <Checkbox
                     checked={isChecked}
                     onChange={() => {
                       if (isChecked) {
-                        setSelectedSocios(
-                          selectedSocios.filter(
-                            (id) => id !== socio._id
-                          )
-                        );
+                        setSelectedSocios(selectedSocios.filter((id) => id !== socio._id));
                       } else {
-                        setSelectedSocios([
-                          ...selectedSocios,
-                          socio._id,
-                        ]);
+                        setSelectedSocios([...selectedSocios, socio._id]);
                       }
                     }}
                   />
@@ -187,11 +190,15 @@ export const PaymentGenerateForm = ({
             Cancelar
           </Button>
 
-          <Button type="submit" variant="contained">
+          <Button 
+            type="submit" 
+            variant="contained" 
+            disabled={!shareId || selectedSocios.length === 0}
+            sx={{ bgcolor: "#1877F2" }}
+          >
             Generar pagos
           </Button>
         </Box>
-
       </Box>
     </Box>
   );
