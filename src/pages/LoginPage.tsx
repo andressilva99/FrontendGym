@@ -122,7 +122,7 @@ export default function LoginPage({ onLogin }: any) {
                   lineHeight: 1
                 }}
               >
-                Oxígeno
+                Silcortech 
               </Typography>
               <Typography
                 variant="h5"
