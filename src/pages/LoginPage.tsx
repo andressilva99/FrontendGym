@@ -74,19 +74,23 @@ export default function LoginPage({ onLogin }: any) {
           }}
         >
           <Box
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage: 'url("/gym.jpg")',
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              opacity: 0.9,
-              zIndex: 0,
-            }}
-          />
+  component="img"
+  src="/gym.webp"
+  alt="Gimnasio Silcor Tech"
+  sx={{
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    objectPosition: "center",
+    opacity: 0.9,
+    zIndex: 0,
+  }}
+  {...({ fetchPriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
+  decoding="sync"
+/>
 
           <Box
             sx={{
