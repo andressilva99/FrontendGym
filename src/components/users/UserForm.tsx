@@ -6,6 +6,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import type { User } from "../../types/user.types";
 import { createUser, updateUser } from "../../api/users.api";
 
@@ -50,13 +51,29 @@ export default function UserForm({ user, onFinish, onCancel }: Props) {
 
     if (form.password) payload.password = form.password;
 
-    if (user) {
-      await updateUser(user._id, payload);
-    } else {
-      await createUser({ ...payload, password: form.password });
-    }
+    try {
+      if (user) {
+        await updateUser(user._id, payload);
+      } else {
+        await createUser({ ...payload, password: form.password });
+      }
 
-    onFinish();
+      onFinish();
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ??
+        "Ocurrió un error al guardar el usuario.";
+
+      onCancel();
+
+      Swal.fire({
+        title: "Atención",
+        text: message,
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#1877F2",
+      });
+    }
   };
 
   return (
