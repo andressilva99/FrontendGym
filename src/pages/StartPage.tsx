@@ -84,7 +84,7 @@ export default function StartPage() {
                   lineHeight: 1,
                 }}
               >
-                Oxígeno
+                SilCor Tech
               </Typography>
               <Typography
                 variant="h5"
