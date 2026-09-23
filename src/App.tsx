@@ -13,6 +13,8 @@ import SharesPage from "./pages/SharesPage";
 import { PaymentsPage } from "./pages/PaymentPage";
 import ReportsPage from "./pages/ReportsPage";
 
+
+
 export default function App() {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
 

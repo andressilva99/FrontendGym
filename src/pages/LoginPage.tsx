@@ -60,8 +60,7 @@ export default function LoginPage({ onLogin }: any) {
       }}
     >
       <BackButton to="/" />
-
-      <Container sx={{ maxWidth: "1000px !important" }}>
+      <Container sx={{ maxWidth: "1000px !important" }}> 
         <Paper
           elevation={24}
           sx={{
@@ -240,20 +239,6 @@ export default function LoginPage({ onLogin }: any) {
                 Iniciar Sesión
               </Button>
             </Stack>
-            <Container maxWidth="lg"
-            sx={{ py: 4 }}>
-              
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: '#6b7280', 
-                  fontWeight: 500,
-                  fontSize: { xs: '0.7rem', sm: '0.8rem' } 
-                }}
-              >
-                 © {new Date().getFullYear()} <strong> Andrés Silva | Desarrollador de Software</strong>. Todos los derechos reservados. 
-              </Typography>
-            </Container>
           </Box>
         </Paper>
       </Container>
