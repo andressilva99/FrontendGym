@@ -9,6 +9,10 @@ import { SociosPage } from "./pages/SociosPage";
 import SharesPage from "./pages/SharesPage";
 import { PaymentsPage } from "./pages/PaymentPage";
 import ReportsPage from "./pages/ReportsPage";
+import StartPage from "./pages/StartPage";
+import PadelPage from "./pages/PadelPage";
+import RoutinePage from "./pages/RoutinePage";
+
 
 export default function App() {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
@@ -34,7 +38,11 @@ export default function App() {
     <BrowserRouter>
       {!loggedUser ? (
         <Routes>
-          <Route path="*" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/" element={<StartPage />} />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/padel" element={<PadelPage />} />
+          <Route path="/rutina" element={<RoutinePage />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       ) : (
         /* Cambiamos a height: '100vh' y overflow: 'hidden' para controlar el scroll */
@@ -75,7 +83,9 @@ export default function App() {
               zIndex: 10 // Asegura que esté por encima si hay elementos flotantes
             }}
           >
-            <Container maxWidth="lg">
+            <Container maxWidth="lg"
+            sx={{ py: 3 }}>
+              
               <Typography 
                 variant="body2" 
                 sx={{ 
@@ -84,7 +94,7 @@ export default function App() {
                   fontSize: { xs: '0.7rem', sm: '0.8rem' } 
                 }}
               >
-                © {new Date().getFullYear()} <strong>AsDev</strong>. Todos los derechos reservados.
+                 © {new Date().getFullYear()} <strong> Andrés Silva | Desarrollador de Software</strong>. Todos los derechos reservados. 
               </Typography>
             </Container>
           </Box>

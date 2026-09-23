@@ -16,6 +16,7 @@ import LockIcon from '@mui/icons-material/Lock';
 // Importamos los iconos de visibilidad
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import BackButton from "../components/BackButton";
 
 export default function LoginPage({ onLogin }: any) {
   const [dni, setDni] = useState("");
@@ -58,6 +59,7 @@ export default function LoginPage({ onLogin }: any) {
         py: 4,
       }}
     >
+      <BackButton to="/" />
       <Container sx={{ maxWidth: "1000px !important" }}> 
         <Paper
           elevation={24}
