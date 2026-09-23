@@ -121,7 +121,7 @@ export default function StartPage() {
                 Ingresar como Entrenador
               </Button>
 
-              {/* <Button
+               <Button
                 variant="contained"
                 onClick={() => navigate("/rutina")}
                 sx={{
@@ -139,7 +139,7 @@ export default function StartPage() {
                 }}
               >
                 Ver Rutina Gym
-              </Button> */}
+              </Button> 
 
               <Button
                 variant="contained"
