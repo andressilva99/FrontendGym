@@ -14,9 +14,11 @@ import {
   Folder,
   BarChart,
   Logout,
+  SportsTennis,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import type { User } from "../types/user.types";
+import BookingNotifications from "../components/padel/BookingNotifications";
 
 interface Props {
   user: User;
@@ -39,6 +41,7 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
     { title: "Cuotas", icon: <Folder sx={{ fontSize: 40 }} />, path: "/shares", description: "Planes y precios" },
     { title: "Pagos", icon: <Payments sx={{ fontSize: 40 }} />, path: "/payments", description: "Control de cobros" },
     { title: "Reportes", icon: <BarChart sx={{ fontSize: 40 }} />, path: "/reports", description: "Estadísticas mensuales" },
+    { title: "Padel", icon: <SportsTennis sx={{ fontSize: 40 }} />, path: "/padel-admin", description: "Turnos y reservas" },
   ];
 
   const visibleItems =
@@ -96,6 +99,8 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
           </Box>
         </Box>
 
+        <Stack direction="row" alignItems="center" spacing={1}>
+        {user.role === "ADMINISTRATIVO" && <BookingNotifications />}
         <Button
           onClick={onLogout}
           startIcon={<Logout />}
@@ -108,6 +113,7 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
         >
           Cerrar sesión
         </Button>
+        </Stack>
       </Stack>
 
       {/* ===== CUERPO PRINCIPAL ===== */}

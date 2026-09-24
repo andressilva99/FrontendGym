@@ -12,6 +12,7 @@ import ReportsPage from "./pages/ReportsPage";
 import StartPage from "./pages/StartPage";
 import PadelPage from "./pages/PadelPage";
 import RoutinePage from "./pages/RoutinePage";
+import PadelAdminPage from "./pages/PadelAdminPage";
 
 
 export default function App() {
@@ -67,6 +68,9 @@ export default function App() {
               <Route path="/shares" element={<SharesPage />} />
               <Route path="/payments" element={<PaymentsPage user={loggedUser}/>} />
               <Route path="/reports" element={<ReportsPage />} />
+              {loggedUser.role === "ADMINISTRATIVO" && (
+                <Route path="/padel-admin" element={<PadelAdminPage />} />
+              )}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Box>
