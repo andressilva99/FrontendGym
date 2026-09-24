@@ -45,7 +45,11 @@ export default function PadelAdminPage() {
       {/* HEADER */}
       <Box sx={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box component="img" src="/logo.png" sx={{ width: 56, height: 56, borderRadius: "50%" }} />
+          <Box component="img" src="/logo.png" sx={{ width: { xs: 44, sm: 56, md: 64 },
+              height: { xs: 44, sm: 56, md: 64 },
+              borderRadius: "50%",
+              objectFit: "cover",
+              boxShadow: "0 4px 12px rgba(24,119,242,0.2)", }} />
           <Typography sx={{ fontWeight: 800, color: "#1877F2", display: { xs: "none", sm: "block" } }}>
             Oxígeno Espacio Deportivo
           </Typography>

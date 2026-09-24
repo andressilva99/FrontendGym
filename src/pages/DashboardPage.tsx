@@ -40,8 +40,9 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
     { title: "Socios", icon: <AccountBalance sx={{ fontSize: 40 }} />, path: "/socios", description: "Listado de miembros" },
     { title: "Cuotas", icon: <Folder sx={{ fontSize: 40 }} />, path: "/shares", description: "Planes y precios" },
     { title: "Pagos", icon: <Payments sx={{ fontSize: 40 }} />, path: "/payments", description: "Control de cobros" },
-    { title: "Reportes", icon: <BarChart sx={{ fontSize: 40 }} />, path: "/reports", description: "Estadísticas mensuales" },
     { title: "Padel", icon: <SportsTennis sx={{ fontSize: 40 }} />, path: "/padel-admin", description: "Turnos y reservas" },
+    { title: "Reportes", icon: <BarChart sx={{ fontSize: 40 }} />, path: "/reports", description: "Estadísticas mensuales" },
+    
   ];
 
   const visibleItems =
