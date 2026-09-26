@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Badge,
   Box,
@@ -24,40 +24,26 @@ import {
 } from "../../utils/padel.utils";
 import { showError, showToast } from "../../utils/alerts";
 
-const POLL_INTERVAL_MS = 30_000;
-
+// La consulta periódica y el aviso de reservas nuevas los hace BookingWatcher (global, en App.tsx).
+// La campana solo muestra la lista y se recarga cuando algo cambia.
 export default function BookingNotifications() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [busy, setBusy] = useState(false);
-  const lastCount = useRef<number | null>(null);
 
   const load = useCallback(async () => {
     try {
       const data = await getUnseenBookings();
       setBookings(data.bookings);
-
-      // Solo avisamos si aparecieron reservas nuevas desde la última consulta (no en la carga inicial)
-      if (lastCount.current !== null && data.count > lastCount.current) {
-        const nuevas = data.count - lastCount.current;
-        showToast(nuevas === 1 ? "¡Se reservó un turno nuevo!" : `¡Se reservaron ${nuevas} turnos nuevos!`);
-        notifyBookingsChanged();
-      }
-      lastCount.current = data.count;
     } catch (error) {
-      // El polling falla en silencio para no llenar la pantalla de alertas si se corta la conexión
+      // Falla en silencio para no llenar la pantalla de alertas si se corta la conexión
       console.error("Error consultando reservas nuevas:", error);
     }
   }, []);
 
   useEffect(() => {
     load();
-    const interval = window.setInterval(load, POLL_INTERVAL_MS);
-    const unsubscribe = onBookingsChanged(load);
-    return () => {
-      window.clearInterval(interval);
-      unsubscribe();
-    };
+    return onBookingsChanged(load);
   }, [load]);
 
   const handleMarkSeen = async (id: string) => {

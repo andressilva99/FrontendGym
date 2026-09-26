@@ -3,4 +3,5 @@ export interface Share {
   numberDays: number;
   amount: number;
   quoteDate: Date;
+  active?: boolean; // las cuotas viejas no lo tienen: se consideran activas
 }

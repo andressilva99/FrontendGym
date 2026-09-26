@@ -82,6 +82,13 @@ export const isPastSlot = (slot: TimeSlot, now: Date = new Date()) => {
 export const clientName = (b: { firstName: string; lastName: string }) =>
   `${b.firstName} ${b.lastName}`.toLocaleUpperCase("es-AR");
 
+// Un turno que ya empezó (o pasó) no se puede cancelar (el back valida lo mismo)
+export const hasSlotStarted = (item: { date: string; startTime: string }, now: Date = new Date()) => {
+  const startsAt = dateFromKey(dateKeyFromIso(item.date));
+  startsAt.setMinutes(timeToMinutes(item.startTime));
+  return now >= startsAt;
+};
+
 export const isPadelType =(type?: string) => (type ?? "").trim().toLowerCase() === "padel";
 
 /* ===== Sincronización de reservas ===== */

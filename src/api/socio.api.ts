@@ -21,7 +21,9 @@ export const deleteSocio = async (id: string) => {
   return res.data;
 };
 
+// Usuarios que se pueden asignar como entrenador de un socio: todos menos los turneros
+// (se filtra acá y no en el back porque /users también lista a todos en la pantalla Usuarios)
 export const getTrainers = async () => {
   const res = await api.get("/users");
-  return res.data;
+  return res.data.filter((u: { role?: string }) => u.role !== "TURNERO");
 };

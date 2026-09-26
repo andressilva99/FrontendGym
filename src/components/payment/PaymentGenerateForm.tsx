@@ -56,9 +56,9 @@ export const PaymentGenerateForm = ({
   const [shareId, setShareId] = useState("");
   const [selectedSocios, setSelectedSocios] = useState<string[]>([]);
 
-  // 🔹 Ordenar Cuotas: Más reciente a más antigua
+  // 🔹 Solo cuotas activas, de más reciente a más antigua
   const sortedShares = useMemo(() => {
-    return [...shares].sort((a, b) => 
+    return shares.filter((s) => s.active !== false).sort((a, b) =>
       new Date(b.quoteDate).getTime() - new Date(a.quoteDate).getTime()
     );
   }, [shares]);

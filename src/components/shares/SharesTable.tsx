@@ -39,6 +39,7 @@ export default function SharesTable({ shares, onEdit, onDelete }: Props) {
             <TableCell sx={{ fontWeight: 'bold' }}>Días</TableCell>
             <TableCell sx={{ fontWeight: 'bold' }}>Monto</TableCell>
             <TableCell sx={{ fontWeight: 'bold' }}>Vigente desde</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Estado</TableCell>
             <TableCell align="right" sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
           </TableRow>
         </TableHead>
@@ -64,6 +65,15 @@ export default function SharesTable({ shares, onEdit, onDelete }: Props) {
 
               <TableCell>{formatDate(s.quoteDate)}</TableCell>
 
+              <TableCell>
+                <Chip
+                  size="small"
+                  label={s.active !== false ? "Activa" : "Inactiva"}
+                  color={s.active !== false ? "success" : "default"}
+                  sx={{ fontWeight: 700 }}
+                />
+              </TableCell>
+
               <TableCell align="right">
                 <IconButton 
                   onClick={() => onEdit(s)} 
@@ -84,7 +94,7 @@ export default function SharesTable({ shares, onEdit, onDelete }: Props) {
           ))}
           {sortedShares.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} align="center" sx={{ py: 3, color: 'gray' }}>
+              <TableCell colSpan={5} align="center" sx={{ py: 3, color: 'gray' }}>
                 No hay cuotas configuradas.
               </TableCell>
             </TableRow>

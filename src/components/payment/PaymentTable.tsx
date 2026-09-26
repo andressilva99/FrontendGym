@@ -100,7 +100,8 @@ export const PaymentTable = ({
                     onClose={() => setEditingId(null)}
                     sx={{ minWidth: 180 }}
                   >
-                    {sortedShares.map((s) => (
+                    {/* Solo cuotas activas, más la que ya tiene el pago (aunque esté inactiva) */}
+                    {sortedShares.filter((s) => s.active !== false || s._id === p.shareId?._id).map((s) => (
                       <MenuItem key={s._id} value={s._id}>
                         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -116,7 +117,8 @@ export const PaymentTable = ({
                 ) : (
                   <Box display="flex" alignItems="center" gap={1}>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: "#1e293b" }}>
-                      ${p.shareId?.amount ?? 0}
+                      {/* Monto guardado en el pago; los pagos viejos usan el de su cuota */}
+                      ${p.amount ?? p.shareId?.amount ?? 0}
                     </Typography>
                     {!p.isPaid && (
                       <IconButton size="small" onClick={() => setEditingId(p._id)} sx={{ color: '#1877F2' }}>

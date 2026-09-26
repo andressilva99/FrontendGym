@@ -33,6 +33,7 @@ import {
   clientName,
   formatMoney,
   getErrorMessage,
+  hasSlotStarted,
   isPastSlot,
   notifyBookingsChanged,
   onBookingsChanged,
@@ -43,9 +44,11 @@ import { confirmAction, showError, showLoading, showSuccess, showWarning } from 
 interface Props {
   courts: Court[];
   prices: Price[];
+  // Solo el administrativo puede eliminar turnos (el turnero no)
+  canDeleteSlots: boolean;
 }
 
-export default function TimeSlotsSection({ courts, prices }: Props) {
+export default function TimeSlotsSection({ courts, prices, canDeleteSlots }: Props) {
   const [date, setDate] = useState(todayKey());
   const [courtFilter, setCourtFilter] = useState("ALL");
   const [slots, setSlots] = useState<TimeSlot[]>([]);
@@ -159,15 +162,17 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
         title="Turnos"
         subtitle={`${formatDateKey(date)} · ${visibleSlots.length} turnos · ${freeCount} libres`}
       >
-        <Button
-          variant="outlined"
-          color="error"
-          startIcon={<DeleteSweepIcon />}
-          onClick={handleDeleteFree}
-          sx={{ textTransform: "none", borderRadius: 2, whiteSpace: "nowrap" }}
-        >
-          Eliminar libres
-        </Button>
+        {canDeleteSlots && (
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteSweepIcon />}
+            onClick={handleDeleteFree}
+            sx={{ textTransform: "none", borderRadius: 2, whiteSpace: "nowrap" }}
+          >
+            Eliminar libres
+          </Button>
+        )}
         <Button
           variant="contained"
           startIcon={<AutoAwesomeIcon />}
@@ -267,14 +272,15 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
                             </IconButton>
                           </Tooltip>
                         )}
-                        {booking && (
+                        {/* Solo se cancelan reservas de turnos que todavía no empezaron */}
+                        {booking && !hasSlotStarted(s, now) && (
                           <Tooltip title="Cancelar reserva">
                             <IconButton color="warning" onClick={() => handleCancelBooking(booking)}>
                               <EventBusyIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         )}
-                        {free && (
+                        {free && canDeleteSlots && (
                           <Tooltip title="Eliminar turno">
                             <IconButton color="error" onClick={() => handleDelete(s)}>
                               <Delete fontSize="small" />

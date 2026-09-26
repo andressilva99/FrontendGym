@@ -31,6 +31,7 @@ import {
   formatMoney,
   formatShortDate,
   getErrorMessage,
+  hasSlotStarted,
   notifyBookingsChanged,
   onBookingsChanged,
   toDateKey,
@@ -276,11 +277,16 @@ export default function BookingsSection() {
                           </IconButton>
                         </Tooltip>
                       )}
-                      <Tooltip title="Cancelar reserva">
-                        <IconButton color="error" onClick={() => handleCancel(b)}>
-                          <EventBusyIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      {/* Solo se cancelan reservas de turnos que todavía no empezaron */}
+                      {hasSlotStarted(b) ? (
+                        <Chip size="small" label="Jugado" variant="outlined" sx={{ fontWeight: 600, color: "#6b7280" }} />
+                      ) : (
+                        <Tooltip title="Cancelar reserva">
+                          <IconButton color="error" onClick={() => handleCancel(b)}>
+                            <EventBusyIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

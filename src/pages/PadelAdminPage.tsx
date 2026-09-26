@@ -15,13 +15,20 @@ import PricesSection from "../components/padel/admin/PricesSection";
 import { getCourts } from "../api/courts.api";
 import { getPrices } from "../api/prices.api";
 import type { Court, Price } from "../types/padel.types";
+import type { User } from "../types/user.types";
 import { getErrorMessage } from "../utils/padel.utils";
 import { showError } from "../utils/alerts";
 
 type TabKey = "turnos" | "reservas" | "canchas" | "precios";
 
-export default function PadelAdminPage() {
+interface Props {
+  user: User;
+}
+
+export default function PadelAdminPage({ user }: Props) {
   const navigate = useNavigate();
+  // Canchas y precios solo los maneja el administrativo (el turnero gestiona turnos y reservas)
+  const isAdmin = user.role === "ADMINISTRATIVO";
   const [tab, setTab] = useState<TabKey>("turnos");
   const [courts, setCourts] = useState<Court[]>([]);
   const [prices, setPrices] = useState<Price[]>([]);
@@ -95,15 +102,15 @@ export default function PadelAdminPage() {
             >
               <Tab value="turnos" label="Turnos" icon={<EventNoteIcon />} iconPosition="start" />
               <Tab value="reservas" label="Reservas" icon={<ReceiptLongIcon />} iconPosition="start" />
-              <Tab value="canchas" label="Canchas" icon={<SportsTennisIcon />} iconPosition="start" />
-              <Tab value="precios" label="Precios" icon={<SellIcon />} iconPosition="start" />
+              {isAdmin && <Tab value="canchas" label="Canchas" icon={<SportsTennisIcon />} iconPosition="start" />}
+              {isAdmin && <Tab value="precios" label="Precios" icon={<SellIcon />} iconPosition="start" />}
             </Tabs>
           </Box>
 
-          {tab === "turnos" && <TimeSlotsSection courts={courts} prices={prices} />}
+          {tab === "turnos" && <TimeSlotsSection courts={courts} prices={prices} canDeleteSlots={isAdmin} />}
           {tab === "reservas" && <BookingsSection />}
-          {tab === "canchas" && <CourtsSection courts={courts} onChanged={loadCatalog} />}
-          {tab === "precios" && <PricesSection prices={prices} courts={courts} onChanged={loadCatalog} />}
+          {isAdmin && tab === "canchas" && <CourtsSection courts={courts} onChanged={loadCatalog} />}
+          {isAdmin && tab === "precios" && <PricesSection prices={prices} courts={courts} onChanged={loadCatalog} />}
         </Box>
       </Container>
     </Box>

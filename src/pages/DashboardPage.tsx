@@ -48,6 +48,8 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
   const visibleItems =
     user.role === "ADMINISTRATIVO"
       ? allItems
+      : user.role === "TURNERO"
+      ? allItems.filter((item) => item.title === "Padel") // el turnero solo gestiona padel
       : allItems.filter(
           (item) =>
             item.title === "Socios" ||
@@ -101,7 +103,7 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
         </Box>
 
         <Stack direction="row" alignItems="center" spacing={1}>
-        {user.role === "ADMINISTRATIVO" && <BookingNotifications />}
+        {(user.role === "ADMINISTRATIVO" || user.role === "TURNERO") && <BookingNotifications />}
         <Button
           onClick={onLogout}
           startIcon={<Logout />}

@@ -106,6 +106,7 @@ export default function UserForm({ user, onFinish, onCancel }: Props) {
         >
           <MenuItem value="ADMINISTRATIVO">Administrativo</MenuItem>
           <MenuItem value="ENTRENADOR">Entrenador</MenuItem>
+          <MenuItem value="TURNERO">Turnero (solo gestiona padel)</MenuItem>
         </TextField>
 
         <TextField

@@ -15,6 +15,7 @@ export interface Share {
   amount: number;
   numberDays: number;
   quoteDate: string;
+  active?: boolean; // las cuotas viejas no lo tienen: se consideran activas
 }
 
 export interface Payment {
@@ -25,6 +26,9 @@ export interface Payment {
   month: number;
   isPaid: boolean;
   paymentDate: string | null;
+  // "Foto" de la cuota al generar el pago (los pagos viejos no la tienen: usar la de shareId)
+  amount?: number;
+  numberDays?: number;
 }
 
 export interface GeneratePaymentDto {

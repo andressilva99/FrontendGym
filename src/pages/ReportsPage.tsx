@@ -1,45 +1,81 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
+  CircularProgress,
   Container,
   Typography,
   Stack,
-  Divider,
   IconButton,
+  Tab,
+  Tabs,
   Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from '@mui/icons-material/Home';
-import ReportFilters from "../components/reports/ReportFilters";
+import GroupsIcon from "@mui/icons-material/Groups";
+import SportsTennisIcon from "@mui/icons-material/SportsTennis";
+import ReportFilters, { type ReportPeriod } from "../components/reports/ReportFilters";
 import GeneralSummaryTable from "../components/reports/ReportsGeneralSummary";
 import TrainerSummaryTable from "../components/reports/ReportTrainerSummary";
-import type { GeneralSummary, TrainerSummary, ReportResponse } from "../types/report.types";
-import { api } from "../api/axios";
+import PadelReportSection from "../components/reports/PadelReportSection";
+import type { GeneralSummary, TrainerSummary, PadelReport } from "../types/report.types";
+import { getPadelReport, getSummaryReport } from "../api/reports.api";
+import { getErrorMessage } from "../utils/padel.utils";
+import { showError } from "../utils/alerts";
+import { MONTH_NAMES } from "../utils/period.utils";
+
+type ReportTab = "cuotas" | "padel";
+
+const currentPeriod = (): ReportPeriod => {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+};
 
 const ReportsPage: React.FC = () => {
   const [general, setGeneral] = useState<GeneralSummary | null>(null);
   const [byTrainer, setByTrainer] = useState<TrainerSummary[]>([]);
-  
+  const [padel, setPadel] = useState<PadelReport | null>(null);
+  const [period, setPeriod] = useState<ReportPeriod>(currentPeriod);
+  const [tab, setTab] = useState<ReportTab>("cuotas");
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
-  const loadReport = async (year: number, month: number) => {
-    try {
-      const res = await api.get<ReportResponse>("/reports/summary", {
-        params: { year, month },
-      });
-
-      setGeneral(res.data.general);
-      setByTrainer(res.data.byTrainer);
-    } catch (err) {
-      console.error(err);
-      alert("Error cargando el reporte");
-    }
-  };
-
+  // Cada vez que cambia el mes se cargan los dos reportes (cuotas y padel) en paralelo
   useEffect(() => {
-    const now = new Date();
-    loadReport(now.getFullYear(), now.getMonth() + 1);
-  }, []);
+    let cancelled = false;
+
+    const loadReports = async () => {
+      setLoading(true);
+      const [summary, padelReport] = await Promise.allSettled([
+        getSummaryReport(period.year, period.month),
+        getPadelReport(period.year, period.month),
+      ]);
+      if (cancelled) return;
+
+      if (summary.status === "fulfilled") {
+        setGeneral(summary.value.general);
+        setByTrainer(summary.value.byTrainer);
+      } else {
+        setGeneral(null);
+        setByTrainer([]);
+      }
+      setPadel(padelReport.status === "fulfilled" ? padelReport.value : null);
+
+      const failed = [summary, padelReport].find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
+      if (failed) {
+        showError(getErrorMessage(failed.reason, "No se pudo cargar el reporte del mes."), "Error cargando el reporte");
+      }
+      setLoading(false);
+    };
+
+    loadReports();
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
+
+  const periodLabel = `${MONTH_NAMES[period.month - 1]} ${period.year}`;
 
   return (
     <Box
@@ -89,13 +125,13 @@ const ReportsPage: React.FC = () => {
 
         {/* Botón Home alineado a la derecha */}
         <Tooltip title="Ir al Dashboard">
-          <IconButton 
+          <IconButton
             onClick={() => navigate("/")}
-            sx={{ 
-              color: "#1877F2", 
+            sx={{
+              color: "#1877F2",
               bgcolor: "rgba(24, 119, 242, 0.05)",
               border: "1px solid rgba(24, 119, 242, 0.1)",
-              "&:hover": { 
+              "&:hover": {
                 bgcolor: "rgba(24, 119, 242, 0.12)",
                 transform: "scale(1.05)"
               },
@@ -114,6 +150,7 @@ const ReportsPage: React.FC = () => {
           maxWidth: 2000,
           mx: "auto",
           mt: { xs: 1, sm: 1.5, md: 2 },
+          px: { xs: 0, sm: 2 },
         }}
       >
         <Box
@@ -129,16 +166,16 @@ const ReportsPage: React.FC = () => {
           <Box
             sx={{
               px: { xs: 2, sm: 3 },
-              py: { xs: 2, sm: 2.5 },
+              pt: { xs: 2, sm: 2.5 },
               borderBottom: "1px solid rgba(0,0,0,0.06)",
               background:
                 "linear-gradient(180deg, rgba(24,119,242,0.08), rgba(255,255,255,0))",
             }}
           >
             <Stack
-              direction={{ xs: "column", sm: "row" }}
+              direction={{ xs: "column", md: "row" }}
               spacing={2}
-              alignItems={{ xs: "stretch", sm: "center" }}
+              alignItems={{ xs: "stretch", md: "center" }}
               justifyContent="space-between"
             >
               <Box>
@@ -150,7 +187,7 @@ const ReportsPage: React.FC = () => {
                     lineHeight: 1.05,
                   }}
                 >
-                  Resumen de Pagos
+                  Reportes
                 </Typography>
                 <Typography
                   sx={{
@@ -159,48 +196,55 @@ const ReportsPage: React.FC = () => {
                     fontSize: { xs: 13, sm: 14 },
                   }}
                 >
-                  Visualizá los ingresos totales y el desglose por entrenadores.
+                  Ingresos de cuotas y turnos de padel de <strong>{periodLabel}</strong>.
                 </Typography>
               </Box>
 
-              {/* Los filtros integrados en la cabecera */}
-              <Box>
-                <ReportFilters onLoad={loadReport} />
-              </Box>
+              {/* Selector de mes */}
+              <ReportFilters value={period} onChange={setPeriod} />
             </Stack>
+
+            <Tabs
+              value={tab}
+              onChange={(_, value: ReportTab) => setTab(value)}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+              sx={{
+                mt: 2,
+                "& .MuiTab-root": { textTransform: "none", fontWeight: 700, fontSize: 15, minHeight: 52 },
+                "& .Mui-selected": { color: "#1877F2 !important" },
+                "& .MuiTabs-indicator": { bgcolor: "#1877F2", height: 3, borderRadius: 3 },
+              }}
+            >
+              <Tab value="cuotas" label="Cuotas del gimnasio" icon={<GroupsIcon />} iconPosition="start" />
+              <Tab value="padel" label="Turnos de padel" icon={<SportsTennisIcon />} iconPosition="start" />
+            </Tabs>
           </Box>
 
-          {/* Sección de Tablas */}
-          <Box sx={{ p: { xs: 2, sm: 3 } }}>
-            <Stack spacing={4}>
-              {/* Resumen General */}
-              <Box>
-                <Typography 
-                  variant="h6" 
-                  sx={{ fontWeight: 700, mb: 2, color: "#374151" }}
-                >
-                  Resumen Mensual General
-                </Typography>
-                <Box sx={{ overflowX: "auto" }}>
-                  <GeneralSummaryTable data={general} />
-                </Box>
+          {/* ===== CONTENIDO DE LA PESTAÑA ===== */}
+          <Box sx={{ p: { xs: 2, sm: 3 }, bgcolor: "#fafbfd" }}>
+            {loading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                <CircularProgress />
               </Box>
+            ) : tab === "cuotas" ? (
+              <Stack spacing={3}>
+                <GeneralSummaryTable data={general} />
 
-              <Divider />
-
-              {/* Detalle por Entrenador */}
-              <Box>
-                <Typography 
-                  variant="h6" 
-                  sx={{ fontWeight: 700, mb: 2, color: "#374151" }}
-                >
-                  Desglose por Entrenadores
-                </Typography>
-                <Box sx={{ overflowX: "auto" }}>
-                  <TrainerSummaryTable data={byTrainer} />
+                <Box sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: "1px solid rgba(0,0,0,0.06)", bgcolor: "#fff" }}>
+                  <Typography sx={{ fontWeight: 800, color: "#111827", fontSize: 16 }}>
+                    Cobrado por entrenador
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: "#6b7280", mb: 2 }}>
+                    Pasá el mouse (o tocá) una porción para ver el monto.
+                  </Typography>
+                  <TrainerSummaryTable data={byTrainer} general={general} />
                 </Box>
-              </Box>
-            </Stack>
+              </Stack>
+            ) : (
+              <PadelReportSection data={padel} />
+            )}
           </Box>
         </Box>
       </Container>
