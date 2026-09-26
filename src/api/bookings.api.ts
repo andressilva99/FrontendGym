@@ -10,7 +10,14 @@ interface BookingPayload {
   whatsapp: number;
 }
 
-export const getBookings = async (filters: { date?: string; dni?: number } = {}): Promise<Booking[]> => {
+interface BookingFilters {
+  date?: string; // un día puntual (YYYY-MM-DD)
+  from?: string; // rango: desde (YYYY-MM-DD, incluido)
+  to?: string; // rango: hasta (YYYY-MM-DD, incluido)
+  dni?: number;
+}
+
+export const getBookings = async (filters: BookingFilters = {}): Promise<Booking[]> => {
   const { data } = await api.get("/bookings", { params: filters });
   return data;
 };
