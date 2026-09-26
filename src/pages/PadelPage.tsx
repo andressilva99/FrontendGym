@@ -195,7 +195,7 @@ export default function PadelPage() {
         </Paper>
       </Container>
 
-      <BookingDialog slot={selected} onClose={() => setSelected(null)} onBooked={() => loadSlots()} redirectOnSuccess="/" />
+      <BookingDialog slot={selected} onClose={() => setSelected(null)} onBooked={() => loadSlots()} redirectOnSuccess={{ path: "/", fullReload: true }} />
     </Box>
   );
 }

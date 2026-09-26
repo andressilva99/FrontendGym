@@ -22,8 +22,24 @@ export const escapeHtml = (text: string) =>
   text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 // Todo texto que venga del usuario o del back debe pasar por escapeHtml antes de armar el html
-export const showSuccessHtml =(title: string, html: string) =>
-  fire({ title, html, icon: "success", confirmButtonText: "Genial", confirmButtonColor: PRIMARY });
+// Resuelve recién cuando la alerta terminó de cerrarse (animación incluida), con true si se tocó
+// el botón. Así se puede navegar sin que SweetAlert siga tocando el scroll/altura de la página.
+export const showSuccessHtml = (title: string, html: string) =>
+  new Promise<boolean>((resolve) => {
+    let confirmed = false;
+    fire({
+      title,
+      html,
+      icon: "success",
+      confirmButtonText: "Genial",
+      confirmButtonColor: PRIMARY,
+      heightAuto: false, // evita que SweetAlert cambie la altura de la página (pantalla en blanco en celulares)
+      preConfirm: () => {
+        confirmed = true;
+      },
+      didClose: () => resolve(confirmed),
+    });
+  });
 
 export const showError = (text: string, title = "Error") =>
   fire({ title, text, icon: "error", confirmButtonText: "Aceptar", confirmButtonColor: PRIMARY });

@@ -304,7 +304,7 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
         slot={bookingSlot}
         onClose={() => setBookingSlot(null)}
         onBooked={load}
-        redirectOnSuccess="/padel-admin"
+        redirectOnSuccess={{ path: "/padel-admin" }}
       />
     </>
   );

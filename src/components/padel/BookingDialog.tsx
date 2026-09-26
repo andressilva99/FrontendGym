@@ -30,8 +30,10 @@ interface Props {
   onClose: () => void;
   // Se llama después de reservar (o si el turno dejó de estar disponible) para recargar los turnos
   onBooked: () => void;
-  // Ruta a la que se navega al tocar "Genial" en la alerta de éxito (solo en el turnero público)
-  redirectOnSuccess?: string;
+  // Ruta a la que se va al tocar "Genial" en la alerta de éxito.
+  // fullReload: carga la página desde cero (turnero público). Sin él, navega dentro de la app (admin:
+  // una recarga completa perdería la sesión en el primer render y mandaría al inicio).
+  redirectOnSuccess?: { path: string; fullReload?: boolean };
 }
 
 const emptyForm: BookingFormData = { firstName: "", lastName: "", dni: "", email: "", whatsapp: "" };
@@ -44,7 +46,10 @@ const validate = (form: BookingFormData) => {
   if (!form.lastName.trim()) errors.lastName = "Ingresá tu apellido";
   if (!/^\d{7,8}$/.test(form.dni)) errors.dni = "El DNI debe tener 7 u 8 números";
   if (!EMAIL_REGEX.test(form.email.trim())) errors.email = "Ingresá un email válido";
-  if (!/^\d{8,15}$/.test(form.whatsapp)) errors.whatsapp = "Solo números, con característica, sin el 0 y sin el 15 (ej: 3564619223)";
+  // Argentina: característica + número = 10 dígitos exactos, sin el 0 inicial ni el 15
+  if (form.whatsapp.startsWith("0")) errors.whatsapp = "Sacá el 0 del inicio. Ej: 3564619223";
+  else if (form.whatsapp.length !== 10)
+    errors.whatsapp = `El número debe tener 10 dígitos (tiene ${form.whatsapp.length}). Característica + número, sin el 0 y sin el 15. Ej: 3564619223`;
   return errors;
 };
 
@@ -109,7 +114,14 @@ export default function BookingDialog({ slot, onClose, onBooked, redirectOnSucce
          <p>${formatDateKey(dateKeyFromIso(slot.date))} de <strong>${escapeHtml(slot.startTime)}</strong> a <strong>${escapeHtml(slot.endTime)}</strong></p>
          <p>${emailNote} <strong>${escapeHtml(email)}</strong></p>`
       ).then((result) => {
-        if (result.isConfirmed && redirectOnSuccess) navigate(redirectOnSuccess);
+        // showSuccessHtml resuelve cuando la alerta ya se cerró del todo
+        if (!result || !redirectOnSuccess) return;
+        if (redirectOnSuccess.fullReload) {
+          window.location.assign(redirectOnSuccess.path);
+        } else {
+          navigate(redirectOnSuccess.path);
+          window.scrollTo(0, 0);
+        }
       });
     };
 
@@ -253,7 +265,7 @@ export default function BookingDialog({ slot, onClose, onBooked, redirectOnSucce
             onChange={handleChange}
             error={!!errors.whatsapp}
             helperText={errors.whatsapp ?? "Ingresá el número con característica, sin el 0 y sin el 15. Ej: 3564619223"}
-            slotProps={{ htmlInput: { inputMode: "tel", maxLength: 15 } }}
+            slotProps={{ htmlInput: { inputMode: "tel", maxLength: 10 } }}
             fullWidth
           />
         </Stack>
