@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import HeaderBookingBell from "../components/padel/HeaderBookingBell";
 import HomeIcon from '@mui/icons-material/Home';
 import Swal from 'sweetalert2'; // Importación de SweetAlert2
 import withReactContent from 'sweetalert2-react-content';
@@ -145,6 +146,8 @@ export default function SharesPage() {
           </Box>
         </Box>
 
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <HeaderBookingBell />
         <Tooltip title="Ir al Dashboard">
           <IconButton 
             onClick={() => navigate("/")}
@@ -162,6 +165,7 @@ export default function SharesPage() {
             <HomeIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 } }} />
           </IconButton>
         </Tooltip>
+        </Box>
       </Box>
 
       {/* ===== CONTENIDO ===== */}

@@ -15,6 +15,7 @@ import {
   InputAdornment
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import HeaderBookingBell from "../components/padel/HeaderBookingBell";
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -144,9 +145,12 @@ export const SociosPage = () => {
           <Box component="img" src="/logo.png" sx={{ width: 56, height: 56, borderRadius: "50%" }} />
           <Typography sx={{ fontWeight: 800, color: "#1877F2" }}>Oxígeno Espacio Deportivo</Typography>
         </Box>
-        <IconButton onClick={() => navigate("/")} sx={{ color: "#1877F2", bgcolor: "rgba(24, 119, 242, 0.05)" }}>
-          <HomeIcon fontSize="large" />
-        </IconButton>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <HeaderBookingBell />
+          <IconButton onClick={() => navigate("/")} sx={{ color: "#1877F2", bgcolor: "rgba(24, 119, 242, 0.05)" }}>
+            <HomeIcon fontSize="large" />
+          </IconButton>
+        </Box>
       </Box>
 
       <Container maxWidth={false} sx={{ maxWidth: 2000, mx: "auto" }}>

@@ -18,6 +18,7 @@ import {
   Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import HeaderBookingBell from "../components/padel/HeaderBookingBell";
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
@@ -171,11 +172,14 @@ export const PaymentsPage = ({ user }: Props) => {
             Oxígeno Espacio Deportivo
           </Typography>
         </Box>
-        <Tooltip title="Volver al Inicio">
-          <IconButton onClick={() => navigate("/")} sx={{ color: "#1877F2", bgcolor: "rgba(24, 119, 242, 0.1)" }}>
-            <HomeIcon sx={{ fontSize: { xs: 28, sm: 32 } }} />
-          </IconButton>
-        </Tooltip>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <HeaderBookingBell />
+          <Tooltip title="Volver al Inicio">
+            <IconButton onClick={() => navigate("/")} sx={{ color: "#1877F2", bgcolor: "rgba(24, 119, 242, 0.1)" }}>
+              <HomeIcon sx={{ fontSize: { xs: 28, sm: 32 } }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
       {/* CONTENIDO PRINCIPAL */}

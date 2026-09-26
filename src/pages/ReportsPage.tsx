@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import HeaderBookingBell from "../components/padel/HeaderBookingBell";
 import HomeIcon from '@mui/icons-material/Home';
 import GroupsIcon from "@mui/icons-material/Groups";
 import SportsTennisIcon from "@mui/icons-material/SportsTennis";
@@ -123,7 +124,9 @@ const ReportsPage: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Botón Home alineado a la derecha */}
+        {/* Campana de reservas + botón Home alineados a la derecha */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <HeaderBookingBell />
         <Tooltip title="Ir al Dashboard">
           <IconButton
             onClick={() => navigate("/")}
@@ -141,6 +144,7 @@ const ReportsPage: React.FC = () => {
             <HomeIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 } }} />
           </IconButton>
         </Tooltip>
+        </Box>
       </Box>
 
       {/* ===== CONTENIDO PRINCIPAL ===== */}

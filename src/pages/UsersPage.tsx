@@ -16,6 +16,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import HeaderBookingBell from "../components/padel/HeaderBookingBell";
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import Swal from 'sweetalert2'; // Importación de SweetAlert2
@@ -134,6 +135,8 @@ export default function UsersPage() {
           </Box>
         </Box>
 
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <HeaderBookingBell />
         <Tooltip title="Ir al Dashboard">
           <IconButton 
             onClick={() => navigate("/")}
@@ -151,6 +154,7 @@ export default function UsersPage() {
             <HomeIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 } }} />
           </IconButton>
         </Tooltip>
+        </Box>
       </Box>
 
       {/* ===== CONTENIDO PRINCIPAL ===== */}
