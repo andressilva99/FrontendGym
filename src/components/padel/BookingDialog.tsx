@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -29,6 +30,8 @@ interface Props {
   onClose: () => void;
   // Se llama después de reservar (o si el turno dejó de estar disponible) para recargar los turnos
   onBooked: () => void;
+  // Ruta a la que se navega al tocar "Genial" en la alerta de éxito (solo en el turnero público)
+  redirectOnSuccess?: string;
 }
 
 const emptyForm: BookingFormData = { firstName: "", lastName: "", dni: "", email: "", whatsapp: "" };
@@ -41,7 +44,7 @@ const validate = (form: BookingFormData) => {
   if (!form.lastName.trim()) errors.lastName = "Ingresá tu apellido";
   if (!/^\d{7,8}$/.test(form.dni)) errors.dni = "El DNI debe tener 7 u 8 números";
   if (!EMAIL_REGEX.test(form.email.trim())) errors.email = "Ingresá un email válido";
-  if (!/^\d{8,15}$/.test(form.whatsapp)) errors.whatsapp = "Solo números, con código de área (ej: 3511234567)";
+  if (!/^\d{8,15}$/.test(form.whatsapp)) errors.whatsapp = "Solo números, con característica, sin el 0 y sin el 15 (ej: 3564619223)";
   return errors;
 };
 
@@ -60,7 +63,8 @@ const confirmBookingSaved = async (dni: number, date: string, timeslotId: string
   return false;
 };
 
-export default function BookingDialog({ slot, onClose, onBooked }: Props) {
+export default function BookingDialog({ slot, onClose, onBooked, redirectOnSuccess }: Props) {
+  const navigate = useNavigate();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -78,7 +82,9 @@ export default function BookingDialog({ slot, onClose, onBooked }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const numeric = name === "dni" || name === "whatsapp";
-    setForm({ ...form, [name]: numeric ? value.replace(/\D/g, "") : value });
+    const uppercase = name === "firstName" || name === "lastName";
+    const clean = numeric ? value.replace(/\D/g, "") : uppercase ? value.toLocaleUpperCase("es-AR") : value;
+    setForm({ ...form, [name]: clean });
     setErrors({ ...errors, [name]: undefined });
   };
 
@@ -102,7 +108,9 @@ export default function BookingDialog({ slot, onClose, onBooked }: Props) {
         `<p><strong>${escapeHtml(slot.courtId?.name ?? "Cancha")}</strong></p>
          <p>${formatDateKey(dateKeyFromIso(slot.date))} de <strong>${escapeHtml(slot.startTime)}</strong> a <strong>${escapeHtml(slot.endTime)}</strong></p>
          <p>${emailNote} <strong>${escapeHtml(email)}</strong></p>`
-      );
+      ).then((result) => {
+        if (result.isConfirmed && redirectOnSuccess) navigate(redirectOnSuccess);
+      });
     };
 
     setSaving(true);
@@ -118,8 +126,9 @@ export default function BookingDialog({ slot, onClose, onBooked }: Props) {
 
       showBooked("Te enviamos la confirmación a");
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number } };
+      const err = error as { response?: { status?: number; data?: { code?: string } } };
       const status = err?.response?.status;
+      const code = err?.response?.data?.code;
       const message = getErrorMessage(error, "No se pudo reservar el turno. Intentá nuevamente.");
 
       // Sin respuesta (timeout o corte): el back pudo haber guardado la reserva y quedarse
@@ -138,8 +147,13 @@ export default function BookingDialog({ slot, onClose, onBooked }: Props) {
         return;
       }
 
-      // El turno ya fue tomado por otra persona o se eliminó: cerramos y refrescamos la grilla
-      if (status === 400 && message.includes("disponible")) {
+      // Se pasó el horario límite para reservar (el back cierra las reservas minutos antes del turno)
+      if (code === "BOOKING_CLOSED") {
+        onClose();
+        onBooked();
+        showError(message, "Reservas cerradas para este turno");
+      } else if (status === 400 && message.includes("disponible")) {
+        // El turno ya fue tomado por otra persona o se eliminó: cerramos y refrescamos la grilla
         onClose();
         onBooked();
         showError("Alguien reservó este horario recién. Elegí otro turno disponible.", "Turno no disponible");
@@ -238,7 +252,7 @@ export default function BookingDialog({ slot, onClose, onBooked }: Props) {
             value={form.whatsapp}
             onChange={handleChange}
             error={!!errors.whatsapp}
-            helperText={errors.whatsapp}
+            helperText={errors.whatsapp ?? "Ingresá el número con característica, sin el 0 y sin el 15. Ej: 3564619223"}
             slotProps={{ htmlInput: { inputMode: "tel", maxLength: 15 } }}
             fullWidth
           />

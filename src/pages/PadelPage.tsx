@@ -11,6 +11,8 @@ import type { TimeSlot } from "../types/padel.types";
 import { formatDateKey, getErrorMessage, isPadelType, isPastSlot, todayKey } from "../utils/padel.utils";
 import { showError } from "../utils/alerts";
 
+const REFRESH_INTERVAL_MS = 60_000;
+
 export default function PadelPage() {
   const [date, setDate] = useState(todayKey());
   const [slots, setSlots] = useState<TimeSlot[]>([]);
@@ -18,19 +20,28 @@ export default function PadelPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<TimeSlot | null>(null);
+  const [now, setNow] = useState(() => new Date());
 
-  const loadSlots = useCallback(async () => {
-    setLoading(true);
-    setLoadError(false);
+  // silent: refresco automático en segundo plano, sin spinner ni alertas
+  const loadSlots = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setLoadError(false);
+    }
     try {
       const data = await getTimeSlots({ date, status: "LIBRE" });
-      setSlots(data.filter((s) => isPadelType(s.courtId?.type) && !isPastSlot(s)));
+      setSlots(data.filter((s) => isPadelType(s.courtId?.type)));
+      setNow(new Date());
     } catch (error) {
+      if (silent) {
+        console.error("Error refrescando turnos:", error);
+        return;
+      }
       setSlots([]);
       setLoadError(true);
       showError(getErrorMessage(error, "No pudimos cargar los turnos disponibles."));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [date]);
 
@@ -38,15 +49,26 @@ export default function PadelPage() {
     loadSlots();
   }, [loadSlots]);
 
+  // Cada minuto: ocultamos los turnos que ya cerraron y traemos los que otros reservaron
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNow(new Date());
+      loadSlots(true);
+    }, REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(interval);
+  }, [loadSlots]);
+
+  const openSlots = useMemo(() => slots.filter((s) => !isPastSlot(s, now)), [slots, now]);
+
   const courts = useMemo(() => {
     const map = new Map<string, string>();
-    slots.forEach((s) => s.courtId && map.set(s.courtId._id, s.courtId.name));
+    openSlots.forEach((s) => s.courtId && map.set(s.courtId._id, s.courtId.name));
     return Array.from(map, ([id, name]) => ({ id, name }));
-  }, [slots]);
+  }, [openSlots]);
 
   const visibleSlots = useMemo(
-    () => (courtFilter === "ALL" ? slots : slots.filter((s) => s.courtId?._id === courtFilter)),
-    [slots, courtFilter]
+    () => (courtFilter === "ALL" ? openSlots : openSlots.filter((s) => s.courtId?._id === courtFilter)),
+    [openSlots, courtFilter]
   );
 
   const handleDateChange = (value: string) => {
@@ -163,7 +185,7 @@ export default function PadelPage() {
                   {loadError ? "Revisá tu conexión e intentá de nuevo." : "Probá con otra fecha."}
                 </Typography>
                 {loadError && (
-                  <Button startIcon={<RefreshIcon />} onClick={loadSlots} sx={{ fontWeight: 700 }}>
+                  <Button startIcon={<RefreshIcon />} onClick={() => loadSlots()} sx={{ fontWeight: 700 }}>
                     Reintentar
                   </Button>
                 )}
@@ -173,7 +195,7 @@ export default function PadelPage() {
         </Paper>
       </Container>
 
-      <BookingDialog slot={selected} onClose={() => setSelected(null)} onBooked={loadSlots} />
+      <BookingDialog slot={selected} onClose={() => setSelected(null)} onBooked={() => loadSlots()} redirectOnSuccess="/" />
     </Box>
   );
 }

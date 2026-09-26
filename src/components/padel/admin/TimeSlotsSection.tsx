@@ -71,6 +71,13 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
     return onBookingsChanged(load);
   }, [load]);
 
+  // Cada minuto recalculamos qué turnos ya cerraron para reservar ("Vencido")
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
   const bookingBySlot = useMemo(() => new Map(bookings.map((b) => [String(b.timeslotId), b])), [bookings]);
 
   const visibleSlots = useMemo(
@@ -222,7 +229,7 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
                 {visibleSlots.map((s) => {
                   const booking = bookingBySlot.get(s._id);
                   const free = s.status === "LIBRE";
-                  const past = isPastSlot(s);
+                  const past = isPastSlot(s, now);
 
                   return (
                     <TableRow key={s._id} hover sx={{ opacity: past && free ? 0.55 : 1 }}>
@@ -292,7 +299,12 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
         onGenerated={load}
       />
 
-      <BookingDialog slot={bookingSlot} onClose={() => setBookingSlot(null)} onBooked={load} />
+      <BookingDialog
+        slot={bookingSlot}
+        onClose={() => setBookingSlot(null)}
+        onBooked={load}
+        redirectOnSuccess="/padel-admin"
+      />
     </>
   );
 }

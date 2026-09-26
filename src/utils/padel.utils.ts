@@ -68,14 +68,14 @@ export const buildDateRange = (from: string, to: string) => {
   return dates;
 };
 
-// Un turno de hoy cuyo horario ya empezó no se puede reservar
-export const isPastSlot = (slot: TimeSlot) => {
-  const slotDay = dateKeyFromIso(slot.date);
-  const today = todayKey();
-  if (slotDay !== today) return slotDay < today;
+// Las reservas de un turno cierran estos minutos antes de su inicio (el back valida lo mismo)
+export const BOOKING_CUTOFF_MINUTES = 5;
 
-  const now = new Date();
-  return timeToMinutes(slot.startTime) <= now.getHours() * 60 + now.getMinutes();
+// Un turno ya no se puede reservar desde BOOKING_CUTOFF_MINUTES antes de su horario de inicio
+export const isPastSlot = (slot: TimeSlot, now: Date = new Date()) => {
+  const startsAt = dateFromKey(dateKeyFromIso(slot.date));
+  startsAt.setMinutes(timeToMinutes(slot.startTime) - BOOKING_CUTOFF_MINUTES);
+  return now >= startsAt;
 };
 
 export const isPadelType = (type?: string) => (type ?? "").trim().toLowerCase() === "padel";
