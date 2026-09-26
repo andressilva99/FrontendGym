@@ -15,6 +15,7 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import { getUnseenBookings, markAllBookingsSeen, markBookingSeen } from "../../api/bookings.api";
 import type { Booking } from "../../types/padel.types";
 import {
+  clientName,
   formatMoney,
   formatShortDate,
   getErrorMessage,
@@ -151,7 +152,7 @@ export default function BookingNotifications() {
             >
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: 14 }} noWrap>
-                  {b.firstName} {b.lastName}
+                  {clientName(b)}
                 </Typography>
                 <Typography sx={{ fontSize: 13, color: "#4b5563" }}>
                   {b.courtName} · {formatShortDate(b.date)} · {b.startTime} a {b.endTime}

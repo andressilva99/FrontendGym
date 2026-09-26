@@ -23,13 +23,22 @@ import type { Court, Price, TimeSlotGeneratorData } from "../../../types/padel.t
 import {
   buildDateRange,
   buildTimeRanges,
+  formatDateKey,
   formatMoney,
   getErrorMessage,
   minutesToTime,
   timeToMinutes,
   todayKey,
 } from "../../../utils/padel.utils";
-import { showError, showLoading, showSuccess, showWarning } from "../../../utils/alerts";
+import {
+  confirmHtml,
+  escapeHtml,
+  showError,
+  showLoading,
+  showSuccess,
+  showWarning,
+  showWarningHtml,
+} from "../../../utils/alerts";
 
 interface Props {
   open: boolean;
@@ -48,7 +57,22 @@ const DURATIONS = [
   { value: 120, label: "2 horas" },
 ];
 
-const priceCourtId = (p: Price) => (typeof p.courtId === "object" && p.courtId ? p.courtId._id : String(p.courtId));
+const MAX_CONFLICTS_SHOWN = 8;
+
+// Lista de turnos que se pisan, para mostrar en la alerta (los datos son horarios y fechas propios)
+const conflictsHtml = (conflicts: { date: string; range: string; existing: string }[]) => {
+  const items = conflicts
+    .slice(0, MAX_CONFLICTS_SHOWN)
+    .map(
+      (c) =>
+        `<li>${escapeHtml(formatDateKey(c.date, { weekday: "short", day: "numeric", month: "short" }))}: <strong>${escapeHtml(c.range)}</strong> choca con el turno existente ${escapeHtml(c.existing)}</li>`
+    )
+    .join("");
+  const more = conflicts.length > MAX_CONFLICTS_SHOWN ? `<li>y ${conflicts.length - MAX_CONFLICTS_SHOWN} más...</li>` : "";
+  return `<ul style="text-align:left;font-size:14px;max-height:200px;overflow:auto;padding-left:20px">${items}${more}</ul>`;
+};
+
+const priceCourtId =(p: Price) => (typeof p.courtId === "object" && p.courtId ? p.courtId._id : String(p.courtId));
 
 export default function TimeSlotGeneratorDialog({ open, initialDate, courts, prices, onClose, onGenerated }: Props) {
   const theme = useTheme();
@@ -128,66 +152,87 @@ export default function TimeSlotGeneratorDialog({ open, initialDate, courts, pri
     }
 
     setSaving(true);
-    showLoading("Creando turnos...");
+    showLoading("Revisando turnos existentes...");
 
-    let created = 0;
-    let skipped = 0;
-    let failed = 0;
-    let lastError = "";
+    // 1) Revisamos todas las fechas ANTES de crear: separamos lo que se puede crear de lo que
+    //    se pisa (mismo horario o dentro de otro turno) con turnos existentes de esa cancha.
+    const toCreate: { date: string; startTime: string; endTime: string }[] = [];
+    const conflicts: { date: string; range: string; existing: string }[] = [];
 
     try {
       for (const date of dates) {
-        // Evitamos duplicar: salteamos los horarios que se pisan con turnos ya existentes de esa cancha
         const existing = await getTimeSlots({ date, courtId: form.courtId });
 
-        const toCreate = ranges.filter((r) => {
+        ranges.forEach((r) => {
           const start = timeToMinutes(r.startTime);
           const end = timeToMinutes(r.endTime);
-          const overlaps = existing.some(
-            (s) => start < timeToMinutes(s.endTime) && timeToMinutes(s.startTime) < end
-          );
-          if (overlaps) skipped++;
-          return !overlaps;
-        });
-
-        const results = await Promise.allSettled(
-          toCreate.map((r) =>
-            createTimeSlot({ courtId: form.courtId, priceId: form.priceId, date, startTime: r.startTime, endTime: r.endTime })
-          )
-        );
-
-        results.forEach((result) => {
-          if (result.status === "fulfilled") created++;
-          else {
-            failed++;
-            lastError = getErrorMessage(result.reason, "Error desconocido");
+          const clash = existing.find((s) => start < timeToMinutes(s.endTime) && timeToMinutes(s.startTime) < end);
+          if (clash) {
+            conflicts.push({
+              date,
+              range: `${r.startTime} - ${r.endTime}`,
+              existing: `${clash.startTime} - ${clash.endTime}`,
+            });
+          } else {
+            toCreate.push({ date, ...r });
           }
         });
       }
     } catch (error) {
       setSaving(false);
-      onGenerated();
-      showError(
-        `${getErrorMessage(error, "Se interrumpió la carga de turnos.")}${created ? ` Se llegaron a crear ${created} turnos.` : ""}`
-      );
+      showError(getErrorMessage(error, "No se pudieron revisar los turnos existentes."));
       return;
     }
+
+    // 2) Si algo se superpone, avisamos y no se crea nada sin confirmación
+    if (conflicts.length > 0) {
+      const html = conflictsHtml(conflicts);
+
+      if (toCreate.length === 0) {
+        setSaving(false);
+        showWarningHtml(
+          "Ya existen turnos en ese horario",
+          `<p>Todos los turnos que querés crear se superponen con turnos que ya están cargados para esta cancha.</p>${html}
+           <p style="font-size:13px;color:#6b7280">Si querés cambiar la duración, primero eliminá los turnos libres de esos días desde "Eliminar libres".</p>`
+        );
+        return;
+      }
+
+      const createAnyway = await confirmHtml(
+        "Hay turnos que se superponen",
+        `<p><strong>${conflicts.length}</strong> de los turnos se superponen con turnos existentes y <strong>no se van a crear</strong>.</p>${html}
+         <p>¿Querés crear solo los <strong>${toCreate.length}</strong> turnos que no se superponen?</p>`,
+        `Crear solo ${toCreate.length} turnos`
+      );
+      if (!createAnyway) {
+        setSaving(false);
+        return;
+      }
+    }
+
+    // 3) Creamos solo los turnos libres de conflictos
+    showLoading("Creando turnos...");
+    const results = await Promise.allSettled(
+      toCreate.map((t) => createTimeSlot({ courtId: form.courtId, priceId: form.priceId, ...t }))
+    );
+
+    const created = results.filter((r) => r.status === "fulfilled").length;
+    const failedResults = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+    const failed = failedResults.length;
 
     setSaving(false);
     onGenerated();
 
     const detail = [
       `Creados: ${created}`,
-      skipped ? `Omitidos por superponerse con turnos existentes: ${skipped}` : "",
-      failed ? `Con error: ${failed} (${lastError})` : "",
+      conflicts.length ? `No creados por superponerse: ${conflicts.length}` : "",
+      failed ? `Con error: ${failed} (${getErrorMessage(failedResults[0].reason, "Error desconocido")})` : "",
     ]
       .filter(Boolean)
       .join(" · ");
 
     if (failed > 0) {
       showError(detail, "Algunos turnos no se pudieron crear");
-    } else if (created === 0) {
-      showWarning(detail, "No se creó ningún turno nuevo");
     } else {
       onClose();
       showSuccess("¡Turnos creados!", detail);

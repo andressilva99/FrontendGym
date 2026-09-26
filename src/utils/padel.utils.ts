@@ -78,7 +78,11 @@ export const isPastSlot = (slot: TimeSlot, now: Date = new Date()) => {
   return now >= startsAt;
 };
 
-export const isPadelType = (type?: string) => (type ?? "").trim().toLowerCase() === "padel";
+// Nombre del cliente siempre en mayúscula (las reservas viejas pueden estar guardadas en minúscula)
+export const clientName = (b: { firstName: string; lastName: string }) =>
+  `${b.firstName} ${b.lastName}`.toLocaleUpperCase("es-AR");
+
+export const isPadelType =(type?: string) => (type ?? "").trim().toLowerCase() === "padel";
 
 /* ===== Sincronización de reservas ===== */
 

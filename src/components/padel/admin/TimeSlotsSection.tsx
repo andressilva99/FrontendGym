@@ -30,6 +30,7 @@ import { cancelBooking, getBookings } from "../../../api/bookings.api";
 import type { Booking, Court, Price, TimeSlot } from "../../../types/padel.types";
 import {
   formatDateKey,
+  clientName,
   formatMoney,
   getErrorMessage,
   isPastSlot,
@@ -130,7 +131,7 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
   const handleCancelBooking = async (booking: Booking) => {
     const confirmed = await confirmAction(
       "¿Cancelar reserva?",
-      `${booking.firstName} ${booking.lastName} · ${booking.startTime} a ${booking.endTime}. El turno volverá a quedar libre.`,
+      `${clientName(booking)} · ${booking.startTime} a ${booking.endTime}. El turno volverá a quedar libre.`,
       "Sí, cancelar"
     );
     if (!confirmed) return;
@@ -250,7 +251,7 @@ export default function TimeSlotsSection({ courts, prices }: Props) {
                         {booking ? (
                           <>
                             <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-                              {booking.firstName} {booking.lastName}
+                              {clientName(booking)}
                             </Typography>
                             <Typography sx={{ fontSize: 12, color: "#6b7280" }}>WhatsApp {booking.whatsapp}</Typography>
                           </>

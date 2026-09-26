@@ -31,7 +31,27 @@ export const showError = (text: string, title = "Error") =>
 export const showWarning = (text: string, title = "Atención") =>
   fire({ title, text, icon: "warning", confirmButtonText: "Aceptar", confirmButtonColor: PRIMARY });
 
-export const showLoading = (title = "Procesando...") =>
+// html: cualquier texto variable dentro debe venir escapado con escapeHtml
+export const showWarningHtml = (title: string, html: string) =>
+  fire({ title, html, icon: "warning", confirmButtonText: "Entendido", confirmButtonColor: PRIMARY });
+
+// Confirmación con detalle en html; devuelve true si se aceptó
+export const confirmHtml = async (title: string, html: string, confirmButtonText: string) => {
+  const result = await fire({
+    title,
+    html,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: PRIMARY,
+    cancelButtonColor: "#6b7280",
+    confirmButtonText,
+    cancelButtonText: "Cancelar",
+    reverseButtons: true,
+  });
+  return result.isConfirmed;
+};
+
+export const showLoading =(title = "Procesando...") =>
   fire({ title, allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
 export const closeAlert = () => Swal.close();

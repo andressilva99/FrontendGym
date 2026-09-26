@@ -24,6 +24,7 @@ import SectionHeader from "./SectionHeader";
 import { cancelBooking, getBookings, markBookingSeen } from "../../../api/bookings.api";
 import type { Booking } from "../../../types/padel.types";
 import {
+  clientName,
   formatMoney,
   formatShortDate,
   getErrorMessage,
@@ -84,7 +85,7 @@ export default function BookingsSection() {
   const handleCancel = async (b: Booking) => {
     const confirmed = await confirmAction(
       "¿Cancelar reserva?",
-      `${b.firstName} ${b.lastName} · ${b.courtName} · ${formatShortDate(b.date)} ${b.startTime} hs. El turno volverá a quedar libre.`,
+      `${clientName(b)} · ${b.courtName} · ${formatShortDate(b.date)} ${b.startTime} hs. El turno volverá a quedar libre.`,
       "Sí, cancelar"
     );
     if (!confirmed) return;
@@ -184,7 +185,7 @@ export default function BookingsSection() {
                     <TableCell>{b.courtName}</TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-                        {b.firstName} {b.lastName}
+                        {clientName(b)}
                       </Typography>
                       <Typography sx={{ fontSize: 12, color: "#6b7280" }}>DNI {b.dni}</Typography>
                     </TableCell>
