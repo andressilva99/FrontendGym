@@ -40,6 +40,8 @@ import type {
 import type { User } from "../types/user.types";
 import { PaymentGenerateForm } from "../components/payment/PaymentGenerateForm";
 import { PaymentTable } from "../components/payment/PaymentTable";
+import { PaymentPeriodFilter } from "../components/payment/PaymentPeriodFilter";
+import { defaultPeriodRange, formatPeriod, toPeriod, type PeriodRange } from "../utils/period.utils";
 
 interface Props {
   user: User;
@@ -56,14 +58,22 @@ export const PaymentsPage = ({ user }: Props) => {
   // 🔹 Filtro de estado: "all" | "paid" | "unpaid"
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // 🔹 Rango de meses de cuota que se muestran (por defecto: mes anterior y actual)
+  const [periodRange, setPeriodRange] = useState<PeriodRange>(defaultPeriodRange);
+  const invalidRange = periodRange.from > periodRange.to;
+
+  // 🔹 "Pendientes" ignora el rango: trae los impagos de TODOS los meses para que no se pase ninguno
+  const showAllUnpaid = statusFilter === "unpaid";
+
   const navigate = useNavigate();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const loadData = async () => {
+    if (!showAllUnpaid && invalidRange) return;
     try {
       const [paymentsData, sharesRes, sociosRes] = await Promise.all([
-        getPayments(),
+        getPayments(showAllUnpaid ? { isPaid: false } : periodRange),
         api.get("/shares"),
         api.get("/socios"),
       ]);
@@ -89,7 +99,7 @@ export const PaymentsPage = ({ user }: Props) => {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [periodRange, showAllUnpaid]);
 
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
@@ -179,6 +189,18 @@ export const PaymentsPage = ({ user }: Props) => {
                 <Typography variant="body2" color="textSecondary">
                   {user.role === "ENTRENADOR" ? `Vista restringida: ${user.username}` : "Panel de Administración Full"}
                 </Typography>
+                {showAllUnpaid ? (
+                  <Typography variant="body2" sx={{ color: "#d32f2f", fontWeight: 700 }}>
+                    Todos los meses · {processedPayments.length} pendientes
+                  </Typography>
+                ) : !invalidRange && (
+                  <Typography variant="body2" sx={{ color: "#1877F2", fontWeight: 700 }}>
+                    {periodRange.from === periodRange.to
+                      ? formatPeriod(periodRange.from)
+                      : `${formatPeriod(periodRange.from)} a ${formatPeriod(periodRange.to)}`}{" "}
+                    · {processedPayments.length} pagos
+                  </Typography>
+                )}
               </Box>
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ width: { xs: "100%", sm: "auto" } }}>
@@ -213,6 +235,17 @@ export const PaymentsPage = ({ user }: Props) => {
             </Tabs>
           </Box>
 
+          {/* BUSCADOR ENTRE MESES (en "Pendientes" se muestran todos los meses) */}
+          {showAllUnpaid ? (
+            <Box sx={{ px: { xs: 2, sm: 3 }, py: 1.5, borderBottom: "1px solid rgba(0,0,0,0.06)", bgcolor: "#fff5f5" }}>
+              <Typography sx={{ fontSize: 14, color: "#b91c1c", fontWeight: 600 }}>
+                Mostrando las cuotas pendientes de todos los meses, para que no se pase ninguna.
+              </Typography>
+            </Box>
+          ) : (
+            <PaymentPeriodFilter value={periodRange} onChange={setPeriodRange} />
+          )}
+
           <Box sx={{ width: "100%", overflowX: "auto" }}>
             <PaymentTable
               payments={processedPayments}
@@ -232,9 +265,21 @@ export const PaymentsPage = ({ user }: Props) => {
               shares={shares}
               socios={socios}
               onGenerate={async (data: GeneratePaymentDto) => {
+                // La tabla solo tiene cargados los meses del filtro: para detectar duplicados
+                // consultamos siempre los pagos del mes que se va a generar
+                const period = toPeriod(data.year, data.month);
+                let monthPayments: Payment[];
+                try {
+                  monthPayments = await getPayments({ from: period, to: period });
+                } catch {
+                  handleClose();
+                  Swal.fire('Error', 'No se pudieron verificar los pagos existentes de ese mes', 'error');
+                  return;
+                }
+
                 const duplicados = data.socioIds.map(id => {
                   const s = socios.find(soc => soc._id === id);
-                  const existe = payments.find(p => {
+                  const existe = monthPayments.find(p => {
                     const pSocioId = typeof p.socioId === 'object' ? p.socioId?._id : p.socioId;
                     return pSocioId === id && p.year === data.year && p.month === data.month;
                   });
@@ -257,7 +302,15 @@ export const PaymentsPage = ({ user }: Props) => {
                   await generatePayments(data);
                   handleClose();
                   await Swal.fire({ icon: 'success', title: 'Pagos generados', timer: 1500, showConfirmButton: false });
-                  loadData(); 
+                  // Si el mes generado está fuera del filtro, lo ampliamos para que se vea (eso recarga solo)
+                  if (!showAllUnpaid && (period < periodRange.from || period > periodRange.to)) {
+                    setPeriodRange({
+                      from: period < periodRange.from ? period : periodRange.from,
+                      to: period > periodRange.to ? period : periodRange.to,
+                    });
+                  } else {
+                    loadData();
+                  }
                 } catch (error) {
                   Swal.fire('Error', 'No se pudieron generar los pagos', 'error');
                 }

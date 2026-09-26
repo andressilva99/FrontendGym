@@ -4,8 +4,12 @@ import type {
   GeneratePaymentDto,
 } from "../types/payment.types";
 
-export const getPayments = async (): Promise<Payment[]> => {
-  const { data } = await api.get<Payment[]>("/payments");
+// from / to: rango de meses de cuota "YYYY-MM", ambos incluidos. isPaid: solo pagados / impagos.
+// Sin filtros trae todos.
+export const getPayments = async (
+  filters: { from?: string; to?: string; isPaid?: boolean } = {}
+): Promise<Payment[]> => {
+  const { data } = await api.get<Payment[]>("/payments", { params: filters });
   return data;
 };
 
