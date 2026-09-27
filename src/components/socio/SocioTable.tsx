@@ -37,8 +37,8 @@ export const SocioTable = ({ socios, onEdit, onDelete }: Props) => {
         <TableBody>
           {socios.map((s) => (
             <TableRow key={s._id} hover>
-              <TableCell>{s.apellido}</TableCell>
-              <TableCell>{s.nombre}</TableCell>
+              <TableCell>{s.apellido?.toLocaleUpperCase("es-AR")}</TableCell>
+              <TableCell>{s.nombre?.toLocaleUpperCase("es-AR")}</TableCell>
               <TableCell>
                 {s.fechaNacimiento
                   ? new Date(s.fechaNacimiento).toLocaleDateString()
@@ -46,7 +46,7 @@ export const SocioTable = ({ socios, onEdit, onDelete }: Props) => {
               </TableCell>
               <TableCell>
                 {typeof s.trainerId === "object" && s.trainerId !== null
-                  ? (s.trainerId as any).username
+                  ? (s.trainerId as any).username?.toLocaleUpperCase("es-AR")
                   : "Sin asignar"}
               </TableCell>
               <TableCell align="right">

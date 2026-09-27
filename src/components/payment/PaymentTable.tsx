@@ -82,10 +82,10 @@ export const PaymentTable = ({
               sx={{ bgcolor: p.isPaid ? "rgba(76, 175, 80, 0.02)" : "inherit" }}
             >
               <TableCell sx={{ fontWeight: 600 }}>
-                {p.socioId ? `${p.socioId.apellido}, ${p.socioId.nombre}` : "Sin socio"}
+                {p.socioId ? `${p.socioId.apellido}, ${p.socioId.nombre}`.toLocaleUpperCase("es-AR") : "Sin socio"}
               </TableCell>
 
-              <TableCell>{p.socioId?.trainerId?.username ?? "-"}</TableCell>
+              <TableCell>{p.socioId?.trainerId?.username?.toLocaleUpperCase("es-AR") ?? "-"}</TableCell>
 
               <TableCell>
                 {editingId === p._id && !p.isPaid ? (

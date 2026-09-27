@@ -56,7 +56,7 @@ export const SocioForm = ({
       >
         {trainers.map((t) => (
           <MenuItem key={t._id} value={t._id}>
-            {t.username}
+            {t.username?.toLocaleUpperCase("es-AR")}
           </MenuItem>
         ))}
       </TextField>

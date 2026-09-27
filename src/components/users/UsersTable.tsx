@@ -81,7 +81,7 @@ export default function UsersTable({ users, onEdit, onReload }: Props) {
         <TableBody>
           {users.map((u) => (
             <TableRow key={u._id} hover>
-              <TableCell>{u.username}</TableCell>
+              <TableCell>{u.username?.toLocaleUpperCase("es-AR")}</TableCell>
               <TableCell>{u.dni || "N/A"}</TableCell>
               <TableCell>
                 <Box 

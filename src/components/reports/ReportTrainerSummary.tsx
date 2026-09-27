@@ -22,7 +22,10 @@ interface Props {
 // El back arma el nombre como "usuario (DNI: 123)": separamos para mostrarlo más limpio
 const splitTrainerName = (full: string) => {
   const match = /^(.*?)\s*\(DNI:\s*([^)]*)\)\s*$/.exec(full);
-  return match ? { name: match[1], dni: match[2] } : { name: full, dni: "" };
+  // El nombre se muestra en mayúscula (tabla y gráfico), igual que en el resto de las tablas
+  return match
+    ? { name: match[1].toLocaleUpperCase("es-AR"), dni: match[2] }
+    : { name: full.toLocaleUpperCase("es-AR"), dni: "" };
 };
 
 interface Row {

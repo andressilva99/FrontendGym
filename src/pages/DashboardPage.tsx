@@ -97,7 +97,7 @@ const DashboardPage: React.FC<Props> = ({ user, onLogout }) => {
               Oxígeno Espacio Deportivo
             </Typography>
             <Typography sx={{ color: "#6b7280", fontSize: 12 }}>
-              Sesión activa: {user.username}
+              Sesión activa: {user.username?.toLocaleUpperCase("es-AR")}
             </Typography>
           </Box>
         </Box>

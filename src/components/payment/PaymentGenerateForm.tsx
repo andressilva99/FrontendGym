@@ -177,7 +177,7 @@ export const PaymentGenerateForm = ({
                     }}
                   />
                   <Typography>
-                    {socio.apellido}, {socio.nombre}
+                    {`${socio.apellido}, ${socio.nombre}`.toLocaleUpperCase("es-AR")}
                   </Typography>
                 </Box>
               );
