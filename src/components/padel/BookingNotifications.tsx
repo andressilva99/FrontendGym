@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Box,
@@ -27,9 +28,16 @@ import { showError, showToast } from "../../utils/alerts";
 // La consulta periódica y el aviso de reservas nuevas los hace BookingWatcher (global, en App.tsx).
 // La campana solo muestra la lista y se recarga cuando algo cambia.
 export default function BookingNotifications() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // "t" cambia en cada clic para que funcione aunque ya estés en la pestaña Reservas
+  const goToUnseen = () => {
+    setAnchorEl(null);
+    navigate(`/padel-admin?tab=reservas&unseen=1&t=${Date.now()}`);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -136,7 +144,22 @@ export default function BookingNotifications() {
                 "&:hover": { bgcolor: "rgba(24, 119, 242, 0.03)" },
               }}
             >
-              <Box sx={{ flex: 1, minWidth: 0 }}>
+              {/* Tocar la notificación lleva a Padel → Reservas mostrando las no leídas */}
+              <Box
+                component="button"
+                type="button"
+                onClick={goToUnseen}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  p: 0,
+                  border: "none",
+                  background: "none",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
                 <Typography sx={{ fontWeight: 700, fontSize: 14 }} noWrap>
                   {clientName(b)}
                 </Typography>

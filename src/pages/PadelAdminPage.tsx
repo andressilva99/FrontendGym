@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Box, Container, IconButton, Stack, Tab, Tabs, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -29,7 +29,15 @@ export default function PadelAdminPage({ user }: Props) {
   const navigate = useNavigate();
   // Canchas y precios solo los maneja el administrativo (el turnero gestiona turnos y reservas)
   const isAdmin = user.role === "ADMINISTRATIVO";
-  const [tab, setTab] = useState<TabKey>("turnos");
+
+  // La pestaña activa vive en la URL (?tab=reservas) para poder llegar directo desde la campana.
+  // ?unseen=1 abre Reservas con "Solo sin leer"; "t" cambia en cada clic para reabrirla aunque ya estés ahí.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") as TabKey | null;
+  const allowedTabs: TabKey[] = isAdmin ? ["turnos", "reservas", "canchas", "precios"] : ["turnos", "reservas"];
+  const tab: TabKey = tabParam && allowedTabs.includes(tabParam) ? tabParam : "turnos";
+  const setTab = (value: TabKey) => setSearchParams({ tab: value }, { replace: true });
+  const unseenKey = searchParams.get("unseen") === "1" ? searchParams.get("t") ?? "1" : null;
   const [courts, setCourts] = useState<Court[]>([]);
   const [prices, setPrices] = useState<Price[]>([]);
 
@@ -108,7 +116,9 @@ export default function PadelAdminPage({ user }: Props) {
           </Box>
 
           {tab === "turnos" && <TimeSlotsSection courts={courts} prices={prices} canDeleteSlots={isAdmin} />}
-          {tab === "reservas" && <BookingsSection />}
+          {tab === "reservas" && (
+            <BookingsSection key={unseenKey ?? "normal"} initialOnlyUnseen={!!unseenKey} />
+          )}
           {isAdmin && tab === "canchas" && <CourtsSection courts={courts} onChanged={loadCatalog} />}
           {isAdmin && tab === "precios" && <PricesSection prices={prices} courts={courts} onChanged={loadCatalog} />}
         </Box>

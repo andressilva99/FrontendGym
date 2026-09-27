@@ -22,7 +22,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import DoneIcon from "@mui/icons-material/Done";
 import EventBusyIcon from "@mui/icons-material/EventBusy";
 import SectionHeader from "./SectionHeader";
-import { cancelBooking, getBookings, markBookingSeen } from "../../../api/bookings.api";
+import { cancelBooking, getBookings, getUnseenBookings, markBookingSeen } from "../../../api/bookings.api";
 import type { Booking } from "../../../types/padel.types";
 import {
   addDaysToKey,
@@ -57,26 +57,37 @@ const RANGE_PRESETS = [
   { label: "Mes anterior", get: () => monthRange(-1) },
 ];
 
-export default function BookingsSection() {
+interface Props {
+  // Abrir directamente con "Solo sin leer" (al llegar desde la campana)
+  initialOnlyUnseen?: boolean;
+}
+
+export default function BookingsSection({ initialOnlyUnseen = false }: Props) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(defaultRange);
   const [search, setSearch] = useState("");
-  const [onlyUnseen, setOnlyUnseen] = useState(false);
+  const [onlyUnseen, setOnlyUnseen] = useState(initialOnlyUnseen);
 
   const invalidRange = !range.from || !range.to || range.from > range.to;
 
+  // "Solo sin leer" trae las no leídas de CUALQUIER fecha (una reserva para dentro de un mes
+  // quedaría fuera del rango por defecto); el resto respeta el rango de fechas
   const load = useCallback(async () => {
-    if (invalidRange) return;
+    if (!onlyUnseen && invalidRange) return;
     setLoading(true);
     try {
-      setBookings(await getBookings({ from: range.from, to: range.to }));
+      setBookings(
+        onlyUnseen
+          ? (await getUnseenBookings()).bookings
+          : await getBookings({ from: range.from, to: range.to })
+      );
     } catch (error) {
       showError(getErrorMessage(error, "No se pudieron cargar las reservas."));
     } finally {
       setLoading(false);
     }
-  }, [range, invalidRange]);
+  }, [range, invalidRange, onlyUnseen]);
 
   useEffect(() => {
     load();
@@ -130,7 +141,11 @@ export default function BookingsSection() {
     <>
       <SectionHeader
         title="Reservas"
-        subtitle={`${formatShortDateKey(range.from)} al ${formatShortDateKey(range.to)} · ${filtered.length} reservas · ${unseenCount} sin leer · Total ${formatMoney(total)}`}
+        subtitle={
+          onlyUnseen
+            ? `Sin leer, de cualquier fecha · ${filtered.length} reservas · Total ${formatMoney(total)}`
+            : `${formatShortDateKey(range.from)} al ${formatShortDateKey(range.to)} · ${filtered.length} reservas · ${unseenCount} sin leer · Total ${formatMoney(total)}`
+        }
       >
         <TextField
           placeholder="Buscar cliente, DNI, email..."
@@ -155,7 +170,14 @@ export default function BookingsSection() {
         />
       </SectionHeader>
 
-      {/* ===== BUSCADOR ENTRE FECHAS ===== */}
+      {/* ===== BUSCADOR ENTRE FECHAS (oculto en "Solo sin leer": se ven todas las fechas) ===== */}
+      {onlyUnseen ? (
+        <Box sx={{ px: { xs: 2, sm: 3 }, py: 1.5, borderBottom: "1px solid #eee", bgcolor: "#eff6ff" }}>
+          <Typography sx={{ fontSize: 14, color: "#1e3a8a", fontWeight: 600 }}>
+            Mostrando las reservas sin leer de cualquier fecha. Desactivá "Solo sin leer" para volver a buscar por fechas.
+          </Typography>
+        </Box>
+      ) : (
       <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, borderBottom: "1px solid #eee", bgcolor: "#fafbfd" }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems={{ xs: "stretch", md: "center" }}>
           <Stack direction="row" spacing={1.5}>
@@ -203,6 +225,7 @@ export default function BookingsSection() {
           </Typography>
         )}
       </Box>
+      )}
 
       <Box sx={{ overflowX: "auto" }}>
         {loading ? (

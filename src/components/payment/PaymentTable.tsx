@@ -65,7 +65,7 @@ export const PaymentTable = ({
           <TableRow>
             <TableCell sx={{ fontWeight: "bold" }}>Socio</TableCell>
             <TableCell sx={{ fontWeight: "bold" }}>Entrenador</TableCell>
-            <TableCell sx={{ fontWeight: "bold" }}>Cuota / Monto</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Monto</TableCell>
             <TableCell sx={{ fontWeight: "bold" }}>Año</TableCell>
             <TableCell sx={{ fontWeight: "bold" }}>Mes</TableCell>
             <TableCell sx={{ fontWeight: "bold" }} align="center">Pagado</TableCell>
